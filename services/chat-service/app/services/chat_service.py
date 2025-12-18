@@ -1,7 +1,8 @@
 """Chat service for processing messages with Microsoft Foundry."""
 
 import logging
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Any
 
 import httpx
 from openai import AsyncAzureOpenAI
@@ -11,13 +12,19 @@ from .foundry_client import FoundryClient
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """Du bist Keiko, ein hilfreicher KI-Assistent fuer Wissensmanagement.
-Antworte praezise und hilfreich auf Deutsch. Wenn du dir nicht sicher bist, sage es ehrlich."""
+SYSTEM_PROMPT = (
+    "Du bist Keiko, ein hilfreicher KI-Assistent fuer Wissensmanagement.\n"
+    "Antworte praezise und hilfreich auf Deutsch. Wenn du dir nicht sicher bist, "
+    "sage es ehrlich."
+)
 
-RAG_SYSTEM_PROMPT = """Du bist Keiko, ein hilfreicher KI-Assistent fuer Wissensmanagement.
-Nutze die folgenden Informationen aus der Wissensdatenbank, um die Frage zu beantworten.
-Wenn die Informationen nicht ausreichen, sage es ehrlich.
-Gib immer die Quellen an, die du verwendet hast."""
+RAG_SYSTEM_PROMPT = (
+    "Du bist Keiko, ein hilfreicher KI-Assistent fuer Wissensmanagement.\n"
+    "Nutze die folgenden Informationen aus der Wissensdatenbank, um die Frage zu "
+    "beantworten.\n"
+    "Wenn die Informationen nicht ausreichen, sage es ehrlich.\n"
+    "Gib immer die Quellen an, die du verwendet hast."
+)
 
 
 class ChatService:
@@ -104,7 +111,8 @@ class ChatService:
                 citations = iq_result["citations"]
                 thoughts.append({
                     "title": "Foundry IQ completed",
-                    "description": f"Retrieved {len(citations)} sources with agentic reasoning",
+                    "description": f"Retrieved {len(citations)} sources with agentic "
+                                   "reasoning",
                 })
 
                 # Return Foundry IQ result
@@ -115,15 +123,18 @@ class ChatService:
                 }
 
                 if suggest_followup:
-                    result["followup_questions"] = await self._generate_followup_questions(
-                        messages, content
+                    result["followup_questions"] = (
+                        await self._generate_followup_questions(messages, content)
                     )
 
                 return result
 
             # Fallback to traditional RAG if Foundry IQ not enabled
             elif self._http_client:
-                thoughts.append({"title": "Searching knowledge base", "description": ""})
+                thoughts.append({
+                    "title": "Searching knowledge base",
+                    "description": ""
+                })
 
                 # Get the last user message as search query
                 user_query = next(
@@ -137,7 +148,7 @@ class ChatService:
                 if search_results:
                     thoughts.append({
                         "title": "Retrieved documents",
-                        "description": f"Found {len(search_results)} relevant documents",
+                        "description": f"Found {len(search_results)} documents",
                     })
 
                     # Build context from search results

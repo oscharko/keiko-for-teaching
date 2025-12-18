@@ -2,8 +2,8 @@
 
 import sys
 import uuid
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -47,7 +47,7 @@ class SessionMiddleware(BaseHTTPMiddleware):
         """
         # Get or create session ID
         session_id = request.cookies.get("session_id")
-        
+
         if not session_id:
             session_id = str(uuid.uuid4())
             is_new_session = True
@@ -65,7 +65,10 @@ class SessionMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Save session data if modified
-        if hasattr(request.state, "session_modified") and request.state.session_modified:
+        if (
+            hasattr(request.state, "session_modified")
+            and request.state.session_modified
+        ):
             await self.cache_client.set(
                 f"data:{session_id}",
                 request.state.session,
@@ -108,7 +111,7 @@ async def set_session(request: Request, key: str, value: any) -> None:
     """
     if not hasattr(request.state, "session"):
         request.state.session = {}
-    
+
     request.state.session[key] = value
     request.state.session_modified = True
 

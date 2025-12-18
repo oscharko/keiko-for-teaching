@@ -1,7 +1,7 @@
 """Authentication middleware for validating JWT tokens."""
 
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 import httpx
 from fastapi import Request, Response, status
@@ -21,7 +21,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         excluded_paths: list[str] | None = None,
     ):
         """Initialize authentication middleware.
-        
+
         Args:
             app: FastAPI application
             auth_service_url: URL of the auth service
@@ -41,11 +41,11 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: Callable
     ) -> Response:
         """Process request and validate authentication.
-        
+
         Args:
             request: Incoming request
             call_next: Next middleware/handler
-            
+
         Returns:
             Response: HTTP response
         """
@@ -55,7 +55,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
 
         # Get authorization header
         auth_header = request.headers.get("Authorization")
-        
+
         if not auth_header or not auth_header.startswith("Bearer "):
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,

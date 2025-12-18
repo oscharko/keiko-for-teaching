@@ -71,10 +71,10 @@ class ChatResponse(BaseModel):
     session_state: Any | None = None
 
 
-@router.post("/chat")
+@router.post("/chat", response_model=ChatResponse)
 async def chat(
     request: Request, chat_request: ChatRequest
-) -> ChatResponse | StreamingResponse:
+) -> Any:
     """Process chat request and return AI response.
 
     Supports both standard and streaming responses, with optional RAG.

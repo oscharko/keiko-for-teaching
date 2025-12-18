@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -19,7 +19,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         excluded_paths: list[str] | None = None,
     ):
         """Initialize request logging middleware.
-        
+
         Args:
             app: FastAPI application
             excluded_paths: List of paths to exclude from logging
@@ -31,11 +31,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: Callable
     ) -> Response:
         """Process request and log details.
-        
+
         Args:
             request: Incoming request
             call_next: Next middleware/handler
-            
+
         Returns:
             Response: HTTP response
         """
@@ -66,25 +66,25 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         # Process request
         try:
             response = await call_next(request)
-            
+
             # Calculate duration
             duration = time.time() - start_time
-            
+
             # Log response
             logger.info(
                 f"Request completed: {request.method} {request.url.path} "
                 f"status={response.status_code} duration={duration:.3f}s "
                 f"client={client_ip} user={user_id}"
             )
-            
+
             # Add custom headers
             response.headers["X-Request-ID"] = request.headers.get(
                 "X-Request-ID", "unknown"
             )
             response.headers["X-Response-Time"] = f"{duration:.3f}s"
-            
+
             return response
-            
+
         except Exception as e:
             # Log error
             duration = time.time() - start_time

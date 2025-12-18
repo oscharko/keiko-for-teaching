@@ -1,8 +1,9 @@
 """Integration tests for chat service API endpoints."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.main import app
 
@@ -10,16 +11,21 @@ from app.main import app
 @pytest.fixture
 def client():
     """Create test client."""
-    return TestClient(app)
+    with TestClient(app) as client:
+        yield client
 
 
 @pytest.fixture
 def mock_openai_client():
     """Mock OpenAI client for integration tests."""
-    with patch("app.main.get_openai_client") as mock:
+    with patch("app.main.AsyncAzureOpenAI") as mock_class:
         client = MagicMock()
         client.chat.completions.create = AsyncMock()
-        mock.return_value = client
+        # Ensure the instantiated client returns our mock
+        mock_class.return_value = client
+        
+        # Also mock the context manager if used
+        # But lifespan calls AsyncAzureOpenAI(...) -> client
         yield client
 
 
@@ -67,18 +73,24 @@ class TestChatEndpoints:
         response = client.post(
             "/api/chat",
             json={
-                "message": "Hello",
-                "conversation_id": "test-conv",
-                "use_rag": False,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "context": {
+                    "overrides": {
+                        "use_rag": False
+                    }
+                },
+                "session_state": {"conversation_id": "test-conv"},
             },
         )
 
         assert response.status_code == 200
         data = response.json()
-        assert "answer" in data
-        assert data["answer"] == "Hello! How can I help you?"
-        assert "thoughts" in data
-        assert "citations" in data
+        data = response.json()
+        assert "message" in data
+        assert data["message"]["content"] == "Hello! How can I help you?"
+        assert "context" in data
+        assert "thoughts" in data["context"]
+        assert "citations" in data["context"]["data_points"]
 
     def test_chat_endpoint_with_rag(
         self, client, mock_openai_client, mock_http_client
@@ -104,7 +116,9 @@ class TestChatEndpoints:
         mock_response = MagicMock()
         mock_response.choices = [
             MagicMock(
-                message=MagicMock(content="Based on the context, Keiko is an AI assistant.")
+                message=MagicMock(
+                    content="Based on the context, Keiko is an AI assistant."
+                )
             )
         ]
         mock_openai_client.chat.completions.create.return_value = mock_response
@@ -113,25 +127,29 @@ class TestChatEndpoints:
         response = client.post(
             "/api/chat",
             json={
-                "message": "What is Keiko?",
-                "conversation_id": "test-conv",
-                "use_rag": True,
+                "messages": [{"role": "user", "content": "What is Keiko?"}],
+                "context": {
+                    "overrides": {
+                        "use_rag": True
+                    }
+                },
+                "session_state": {"conversation_id": "test-conv"},
             },
         )
 
         assert response.status_code == 200
         data = response.json()
-        assert "answer" in data
-        assert "citations" in data
-        assert len(data["citations"]) > 0
+        assert "message" in data
+        assert "citations" in data["context"]["data_points"]
+        assert len(data["context"]["data_points"]["citations"]) > 0
 
     def test_chat_endpoint_validation_error(self, client):
         """Test chat endpoint with invalid request."""
         response = client.post(
             "/api/chat",
             json={
-                # Missing required 'message' field
-                "conversation_id": "test-conv",
+                # Missing required 'messages' field
+                "session_state": {"conversation_id": "test-conv"},
             },
         )
 
@@ -149,19 +167,23 @@ class TestChatEndpoints:
         response = client.post(
             "/api/chat",
             json={
-                "message": "Do you remember what we talked about?",
-                "conversation_id": "test-conv",
-                "history": [
+                "messages": [
                     {"role": "user", "content": "Hello"},
                     {"role": "assistant", "content": "Hi there!"},
+                    {"role": "user", "content": "Do you remember what we talked about?"}
                 ],
-                "use_rag": False,
+                "context": {
+                    "overrides": {
+                        "use_rag": False
+                    }
+                },
+                "session_state": {"conversation_id": "test-conv"},
             },
         )
 
         assert response.status_code == 200
         data = response.json()
-        assert "answer" in data
+        assert "message" in data
 
         # Verify history was passed to OpenAI
         call_kwargs = mock_openai_client.chat.completions.create.call_args.kwargs

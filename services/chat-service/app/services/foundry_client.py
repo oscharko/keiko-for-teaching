@@ -3,16 +3,16 @@
 import logging
 from typing import Any
 
+from azure.ai.agents.models import Agent, AgentThread, ThreadMessage
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import (
+    AssistantMessage,
     ChatCompletions,
     ChatRequestMessage,
     SystemMessage,
     UserMessage,
-    AssistantMessage,
 )
 from azure.ai.projects import AIProjectClient
-from azure.ai.projects.models import Agent, AgentThread, ThreadMessage
 from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class FoundryClient:
     """Client for Microsoft Foundry AI services.
-    
+
     This client provides access to:
     - Multi-model inference (GPT-4o, Claude Sonnet 4.5, DeepSeek-V3, etc.)
     - Foundry Agent Service (hosted agents with tool orchestration)
@@ -33,12 +33,12 @@ class FoundryClient:
 
     def __init__(self, settings: Settings):
         """Initialize Foundry client.
-        
+
         Args:
             settings: Application settings with Foundry configuration
         """
         self._settings = settings
-        
+
         # Initialize credential
         if settings.foundry_api_key:
             # Local development with API key
@@ -48,7 +48,7 @@ class FoundryClient:
             self._credential = DefaultAzureCredential(
                 managed_identity_client_id=settings.azure_client_id
             )
-        
+
         # Initialize AI Project Client (for Foundry Agent Service)
         self._project_client = AIProjectClient(
             endpoint=settings.foundry_endpoint,
@@ -57,13 +57,13 @@ class FoundryClient:
             resource_group_name=settings.azure_resource_group,
             project_name=settings.foundry_project_name,
         )
-        
+
         # Initialize Chat Completions Client (for multi-model inference)
         self._chat_client = ChatCompletionsClient(
             endpoint=f"{settings.foundry_endpoint}/models",
             credential=self._credential,
         )
-        
+
         logger.info(
             f"Foundry client initialized - Project: {settings.foundry_project_name}, "
             f"Default Model: {settings.foundry_default_model}"
@@ -78,7 +78,7 @@ class FoundryClient:
         use_model_router: bool = False,
     ) -> ChatCompletions:
         """Generate chat completion using Foundry models.
-        
+
         Args:
             messages: Chat message history
             model: Model to use (gpt-4o, claude-sonnet-4.5, deepseek-v3, etc.)
@@ -86,7 +86,7 @@ class FoundryClient:
             temperature: Sampling temperature (0.0 to 2.0)
             max_tokens: Maximum tokens to generate
             use_model_router: Use Foundry Model Router for automatic model selection
-            
+
         Returns:
             ChatCompletions: Response from the model
         """
@@ -95,24 +95,24 @@ class FoundryClient:
         for msg in messages:
             role = msg["role"]
             content = msg["content"]
-            
+
             if role == "system":
                 foundry_messages.append(SystemMessage(content=content))
             elif role == "user":
                 foundry_messages.append(UserMessage(content=content))
             elif role == "assistant":
                 foundry_messages.append(AssistantMessage(content=content))
-        
+
         # Determine model to use
         target_model = model or self._settings.foundry_default_model
-        
+
         # Use Model Router if enabled
         if use_model_router:
             target_model = "model-router"  # Foundry's automatic model selection
             logger.info("Using Foundry Model Router for automatic model selection")
-        
+
         logger.info(f"Generating completion with model: {target_model}")
-        
+
         # Generate completion
         response = await self._chat_client.complete(
             model=target_model,
@@ -120,7 +120,7 @@ class FoundryClient:
             temperature=temperature or self._settings.default_temperature,
             max_tokens=max_tokens or self._settings.default_max_tokens,
         )
-        
+
         return response
 
     async def create_agent(
@@ -131,13 +131,13 @@ class FoundryClient:
         tools: list[str] | None = None,
     ) -> Agent:
         """Create a Foundry Agent.
-        
+
         Args:
             name: Agent name
             instructions: System instructions for the agent
             model: Model to use for the agent
             tools: List of tools to enable (file_search, code_interpreter, etc.)
-            
+
         Returns:
             Agent: Created agent instance
         """
@@ -147,7 +147,7 @@ class FoundryClient:
             instructions=instructions,
             tools=tools or [],
         )
-        
+
         logger.info(f"Created Foundry Agent: {name} (ID: {agent.id})")
         return agent
 
@@ -239,8 +239,8 @@ class FoundryClient:
             name="foundry-iq-agent",
             instructions=(
                 "You are a knowledge retrieval agent. "
-                "Search the knowledge base and synthesize information from multiple sources. "
-                "Always provide citations for your answers."
+                "Search the knowledge base and synthesize information from multiple "
+                "sources. Always provide citations for your answers."
             ),
             tools=["file_search"],
         )

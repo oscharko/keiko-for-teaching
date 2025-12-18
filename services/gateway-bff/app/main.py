@@ -1,9 +1,9 @@
 """Gateway BFF main application module."""
 
 import sys
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
 
 import httpx
 from fastapi import FastAPI

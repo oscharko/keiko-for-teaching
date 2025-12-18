@@ -8,9 +8,11 @@ class Settings(BaseSettings):
 
     # Microsoft Foundry Configuration
     foundry_endpoint: str = ""  # e.g., https://aiproj-keiko-dev.westeurope.api.azureml.ms
-    foundry_api_key: str = ""  # Optional: Only for local dev, use Managed Identity in production
+    # Optional: Only for local dev, use Managed Identity in prod
+    foundry_api_key: str = ""
     foundry_project_name: str = "aiproj-keiko-dev"
-    foundry_default_model: str = "gpt-4o"  # Can be: gpt-4o, claude-sonnet-4.5, deepseek-v3, etc.
+    # Options: gpt-4o, claude-sonnet-4.5, deepseek-v3
+    foundry_default_model: str = "gpt-4o"
 
     # Azure Subscription & Resource Group (for Foundry Agent Service)
     azure_subscription_id: str = ""
@@ -29,7 +31,8 @@ class Settings(BaseSettings):
     azure_openai_api_key: str = ""
     azure_openai_deployment: str = "gpt-4o"
     azure_openai_api_version: str = "2024-08-01-preview"
-    use_legacy_openai: bool = False  # Set to True to use old Azure OpenAI instead of Foundry
+    # Set to True to use old Azure OpenAI instead of Foundry
+    use_legacy_openai: bool = False
 
     # Search Service
     search_service_url: str = "http://localhost:8002"

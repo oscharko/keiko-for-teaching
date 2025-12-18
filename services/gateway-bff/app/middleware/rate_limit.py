@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
@@ -21,7 +21,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         excluded_paths: list[str] | None = None,
     ):
         """Initialize rate limiting middleware.
-        
+
         Args:
             app: FastAPI application
             requests_per_minute: Maximum requests per minute per client
@@ -33,12 +33,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def _get_client_identifier(self, request: Request) -> str:
         """Get client identifier for rate limiting.
-        
+
         Uses user ID if authenticated, otherwise IP address.
-        
+
         Args:
             request: Incoming request
-            
+
         Returns:
             str: Client identifier
         """
@@ -47,25 +47,25 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             user_id = request.state.user.get("sub")
             if user_id:
                 return f"user:{user_id}"
-        
+
         # Fall back to IP address
         forwarded_for = request.headers.get("X-Forwarded-For")
         if forwarded_for:
             client_ip = forwarded_for.split(",")[0].strip()
         else:
             client_ip = request.client.host if request.client else "unknown"
-        
+
         return f"ip:{client_ip}"
 
     async def dispatch(
         self, request: Request, call_next: Callable
     ) -> Response:
         """Process request and check rate limits.
-        
+
         Args:
             request: Incoming request
             call_next: Next middleware/handler
-            
+
         Returns:
             Response: HTTP response
         """
@@ -83,10 +83,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         try:
             # Get current request count
             current_count = await cache_client.get(rate_limit_key)
-            
+
             if current_count is None:
                 current_count = 0
-            
+
             # Check if rate limit exceeded
             if current_count >= self.requests_per_minute:
                 logger.warning(

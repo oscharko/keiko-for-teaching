@@ -1,8 +1,9 @@
 """Integration tests for gateway BFF API endpoints."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.main import app
 

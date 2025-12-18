@@ -1,9 +1,9 @@
 """Chat service main application module."""
 
 import sys
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
 
 import httpx
 from azure.identity import get_bearer_token_provider

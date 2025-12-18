@@ -1,7 +1,6 @@
 """Ideas proxy router - placeholder for ideas service."""
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -33,14 +32,14 @@ class Idea(BaseModel):
 @router.post("/ideas", response_model=Idea)
 async def create_idea(idea: IdeaCreate, request: Request) -> Idea:
     """Create a new idea.
-    
+
     TODO: Implement actual ideas service integration.
     This is a placeholder implementation.
-    
+
     Args:
         idea: Idea to create
         request: FastAPI request object
-        
+
     Returns:
         Idea: Created idea
     """
@@ -57,14 +56,14 @@ async def list_ideas(
     limit: int = 20,
 ) -> list[Idea]:
     """List ideas.
-    
+
     TODO: Implement actual ideas service integration.
-    
+
     Args:
         request: FastAPI request object
         skip: Number of ideas to skip
         limit: Maximum number of ideas to return
-        
+
     Returns:
         list[Idea]: List of ideas
     """
@@ -75,16 +74,16 @@ async def list_ideas(
 @router.get("/ideas/{idea_id}", response_model=Idea)
 async def get_idea(idea_id: str, request: Request) -> Idea:
     """Get idea by ID.
-    
+
     TODO: Implement actual ideas service integration.
-    
+
     Args:
         idea_id: Idea ID
         request: FastAPI request object
-        
+
     Returns:
         Idea: Idea details
-        
+
     Raises:
         HTTPException: If idea not found
     """

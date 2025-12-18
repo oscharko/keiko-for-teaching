@@ -4,7 +4,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Add shared modules to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "shared"))
@@ -27,11 +27,11 @@ def generate_cache_key(messages: list[dict[str, str]], **kwargs) -> str:
         "messages": messages,
         "params": {k: v for k, v in sorted(kwargs.items()) if v is not None},
     }
-    
+
     # Generate hash
     cache_str = json.dumps(cache_data, sort_keys=True)
     cache_hash = hashlib.sha256(cache_str.encode()).hexdigest()
-    
+
     return f"chat:response:{cache_hash}"
 
 
@@ -39,7 +39,7 @@ async def get_cached_response(
     cache_client: CacheClient,
     messages: list[dict[str, str]],
     **kwargs
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Get cached chat response if available.
 
     Args:
