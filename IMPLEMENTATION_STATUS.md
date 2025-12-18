@@ -52,36 +52,40 @@
 ## Phase 1: Quick Wins
 
 ### Security Hardening
-- [ ] **Managed Identity Modul** - Priority: Critical | Complexity: Medium
+- [x] **Managed Identity Modul** - Priority: Critical | Complexity: Medium
   - infra/bicep/modules/identity.bicep
+  - infra/bicep/modules/role-assignments.bicep
   - Role Assignments fuer Azure Services
-- [ ] **Shared Azure Identity Python Module** - Priority: High | Complexity: Small
+- [x] **Shared Azure Identity Python Module** - Priority: High | Complexity: Small
   - services/shared/azure_identity.py
   - Credential Factory mit Environment Detection
-- [ ] **API Keys aus Code entfernen** - Priority: Critical | Complexity: Small
+- [x] **API Keys aus Code entfernen** - Priority: Critical | Complexity: Small
+  - Chat Service updated to use Managed Identity
 
 ### Azure API Management
-- [ ] **APIM Bicep Modul** - Priority: High | Complexity: Medium
+- [x] **APIM Bicep Modul** - Priority: High | Complexity: Medium
   - infra/bicep/modules/apim.bicep
   - Rate Limiting Policies
   - API Definitions
-- [ ] **APIM Integration in main.bicep** - Priority: High | Complexity: Small
+- [x] **APIM Integration in main.bicep** - Priority: High | Complexity: Small
 
 ### Redis Cache Integration
 - [x] Redis Bicep Modul erstellt
-- [ ] **Redis Cache Python Client** - Priority: High | Complexity: Medium
+- [x] **Redis Cache Python Client** - Priority: High | Complexity: Medium
   - services/shared/cache.py
   - Async Redis Client mit TTL Support
-- [ ] **Session Caching Implementation** - Priority: Medium | Complexity: Medium
-- [ ] **Response Caching Implementation** - Priority: Medium | Complexity: Medium
+- [x] **Session Caching Implementation** - Priority: Medium | Complexity: Medium
+  - services/gateway-bff/app/middleware/session.py
+- [x] **Response Caching Implementation** - Priority: Medium | Complexity: Medium
+  - services/chat-service/app/utils/cache_utils.py
 
 ### CI/CD Pipeline
 - [x] CI Pipeline (.github/workflows/ci.yaml)
 - [x] CD Pipeline (.github/workflows/deploy.yaml)
-- [ ] **Security Scans (Trivy)** - Priority: High | Complexity: Small
-- [ ] **Code Coverage Upload (Codecov)** - Priority: Medium | Complexity: Small
-- [ ] **Rust Build in CI** - Priority: High | Complexity: Small
-- [ ] **Frontend Build in CI** - Priority: High | Complexity: Small
+- [x] **Security Scans (Trivy)** - Priority: High | Complexity: Small
+- [x] **Code Coverage Upload (Codecov)** - Priority: Medium | Complexity: Small
+- [x] **Rust Build in CI** - Priority: High | Complexity: Small
+- [x] **Frontend Build in CI** - Priority: High | Complexity: Small
 
 ---
 
@@ -421,7 +425,7 @@
 | Phase | Implementiert | Offen | Fortschritt |
 |-------|---------------|-------|-------------|
 | Phase 0: Foundation | 16 | 0 | 100% |
-| Phase 1: Quick Wins | 3 | 12 | 20% |
+| Phase 1: Quick Wins | 15 | 0 | 100% |
 | Phase 2: Microservices | 18 | 35 | 34% |
 | Phase 3: Frontend | 22 | 52 | 30% |
 | Phase 4: API Contracts | 4 | 12 | 25% |

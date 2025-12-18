@@ -73,8 +73,53 @@ module redis 'modules/redis.bicep' = {
   }
 }
 
+module identity 'modules/identity.bicep' = {
+  scope: rg
+  name: 'identity-deployment'
+  params: {
+    identityName: 'id-${projectName}-${environment}'
+    location: location
+    tags: tags
+  }
+}
+
+module apim 'modules/apim.bicep' = {
+  scope: rg
+  name: 'apim-deployment'
+  params: {
+    apimName: 'apim-${projectName}-${environment}'
+    location: location
+    tags: tags
+    publisherEmail: 'admin@keiko.local'
+    publisherName: 'Keiko'
+    skuName: environment == 'prod' ? 'Standard' : 'Developer'
+  }
+}
+
+module roleAssignments 'modules/role-assignments.bicep' = {
+  scope: rg
+  name: 'role-assignments-deployment'
+  params: {
+    principalId: identity.outputs.principalId
+    openaiId: openai.outputs.accountId
+    searchId: search.outputs.searchId
+    acrId: acr.outputs.acrId
+    redisId: redis.outputs.redisId
+  }
+  dependsOn: [
+    identity
+    openai
+    search
+    acr
+    redis
+  ]
+}
+
 output aksClusterName string = aks.outputs.clusterName
 output acrLoginServer string = acr.outputs.loginServer
 output openaiEndpoint string = openai.outputs.endpoint
 output searchEndpoint string = search.outputs.endpoint
+output redisHostname string = redis.outputs.hostname
+output managedIdentityClientId string = identity.outputs.clientId
+output apimGatewayUrl string = apim.outputs.apimGatewayUrl
 

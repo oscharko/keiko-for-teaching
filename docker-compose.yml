@@ -37,6 +37,9 @@ services:
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
       - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT}
       - SEARCH_SERVICE_URL=http://search:8002
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
 
   search:
     build:

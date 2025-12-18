@@ -162,3 +162,78 @@ class CacheClient:
             logger.error(f"Error checking existence of key {key}: {e}")
             return False
 
+    async def get_ttl(self, key: str) -> Optional[int]:
+        """Get the remaining TTL for a key.
+
+        Args:
+            key: Cache key
+
+        Returns:
+            int: Remaining TTL in seconds, or None if key doesn't exist
+        """
+        if not self._client:
+            logger.warning("Redis client not connected")
+            return None
+
+        try:
+            ttl = await self._client.ttl(self._make_key(key))
+            return ttl if ttl > 0 else None
+        except RedisError as e:
+            logger.error(f"Error getting TTL for key {key}: {e}")
+            return None
+
+    async def clear_pattern(self, pattern: str) -> int:
+        """Delete all keys matching a pattern.
+
+        Args:
+            pattern: Key pattern (e.g., "session:*")
+
+        Returns:
+            int: Number of keys deleted
+        """
+        if not self._client:
+            logger.warning("Redis client not connected")
+            return 0
+
+        try:
+            full_pattern = self._make_key(pattern)
+            keys = []
+            async for key in self._client.scan_iter(match=full_pattern):
+                keys.append(key)
+
+            if keys:
+                return await self._client.delete(*keys)
+            return 0
+        except RedisError as e:
+            logger.error(f"Error clearing pattern {pattern}: {e}")
+            return 0
+
+
+# Singleton instance
+_cache_client: Optional[CacheClient] = None
+
+
+def get_cache_client(
+    redis_url: str = "redis://localhost:6379",
+    default_ttl: int = 3600,
+    key_prefix: str = "keiko",
+) -> CacheClient:
+    """Get or create the singleton cache client instance.
+
+    Args:
+        redis_url: Redis connection URL
+        default_ttl: Default TTL in seconds
+        key_prefix: Key prefix
+
+    Returns:
+        CacheClient: The cache client instance
+    """
+    global _cache_client
+    if _cache_client is None:
+        _cache_client = CacheClient(
+            redis_url=redis_url,
+            default_ttl=default_ttl,
+            key_prefix=key_prefix,
+        )
+    return _cache_client
+

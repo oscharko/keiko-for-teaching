@@ -66,6 +66,14 @@ jobs:
           uv pip install --system -e ".[dev]"
           ruff check .
           mypy app
+          pytest --cov=app --cov-report=xml --cov-report=term
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./services/gateway-bff/coverage.xml
+          flags: gateway-bff
+          name: gateway-bff-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   chat:
     needs: changes
@@ -82,6 +90,14 @@ jobs:
           uv pip install --system -e ".[dev]"
           ruff check .
           mypy app
+          pytest --cov=app --cov-report=xml --cov-report=term
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./services/chat-service/coverage.xml
+          flags: chat-service
+          name: chat-service-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   ingestion:
     needs: changes
@@ -101,4 +117,60 @@ jobs:
           cargo fmt --check
           cargo clippy -- -D warnings
           cargo build --release
+
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # Scan Python dependencies
+      - name: Run Trivy vulnerability scanner (Python)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'services/chat-service'
+          format: 'sarif'
+          output: 'trivy-python-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results (Python) to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-python-results.sarif'
+          category: 'python-dependencies'
+
+      # Scan Rust dependencies
+      - name: Run Trivy vulnerability scanner (Rust)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'services/ingestion-service'
+          format: 'sarif'
+          output: 'trivy-rust-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results (Rust) to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-rust-results.sarif'
+          category: 'rust-dependencies'
+
+      # Scan Node.js dependencies
+      - name: Run Trivy vulnerability scanner (Node.js)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'apps/frontend'
+          format: 'sarif'
+          output: 'trivy-nodejs-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results (Node.js) to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-nodejs-results.sarif'
+          category: 'nodejs-dependencies'
 
