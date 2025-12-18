@@ -1,0 +1,23 @@
+{
+  "name": "@keiko/proto-ts",
+  "version": "0.1.0",
+  "description": "TypeScript types generated from Protocol Buffers for Keiko services",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist src",
+    "generate": "cd ../proto && ./compile.sh"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^1.10.0",
+    "@connectrpc/connect": "^1.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist"
+  ]
+}
+

@@ -12,7 +12,9 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "validate:api": "./tools/scripts/validate-openapi.sh",
+    "generate:proto": "cd packages/proto && ./compile.sh"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

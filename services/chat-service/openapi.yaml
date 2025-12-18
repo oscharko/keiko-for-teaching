@@ -1,0 +1,253 @@
+openapi: 3.1.0
+info:
+  title: Keiko Chat Service API
+  version: 0.1.0
+  description: |
+    Chat service with Azure OpenAI integration, supporting RAG (Retrieval Augmented Generation)
+    and streaming responses.
+  contact:
+    name: Keiko Team
+    email: support@keiko.ai
+
+servers:
+  - url: http://localhost:8001
+    description: Local development
+  - url: https://chat-service.keiko.ai
+    description: Production
+
+tags:
+  - name: Chat
+    description: Chat endpoints with AI assistance
+  - name: Health
+    description: Health check endpoints
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the service
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /ready:
+    get:
+      summary: Readiness check
+      description: Returns whether the service is ready to accept requests
+      operationId: readinessCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/chat:
+    post:
+      summary: Chat with AI
+      description: |
+        Send a chat message and receive an AI response. Supports both standard and streaming responses.
+        Can optionally use RAG (Retrieval Augmented Generation) for context-aware responses.
+      operationId: chat
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+            text/event-stream:
+              schema:
+                type: string
+                description: Server-sent events stream for streaming responses
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Message:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+          description: The role of the message sender
+        content:
+          type: string
+          description: The message content
+
+    ChatOverrides:
+      type: object
+      properties:
+        retrieval_mode:
+          type: string
+          enum: [hybrid, text, vectors]
+          description: Search retrieval mode for RAG
+        semantic_ranker:
+          type: boolean
+          description: Enable semantic ranker
+        semantic_captions:
+          type: boolean
+          description: Enable semantic captions
+        top:
+          type: integer
+          minimum: 1
+          maximum: 50
+          description: Number of search results to retrieve
+        temperature:
+          type: number
+          minimum: 0.0
+          maximum: 2.0
+          description: Sampling temperature for response generation
+        suggest_followup_questions:
+          type: boolean
+          description: Generate follow-up questions
+        use_rag:
+          type: boolean
+          description: Enable RAG (Retrieval Augmented Generation)
+        stream:
+          type: boolean
+          description: Enable streaming response
+
+    ChatContext:
+      type: object
+      properties:
+        overrides:
+          $ref: '#/components/schemas/ChatOverrides'
+
+    ChatRequest:
+      type: object
+      required:
+        - messages
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+          description: Array of chat messages
+        context:
+          $ref: '#/components/schemas/ChatContext'
+        session_state:
+          type: object
+          description: Optional session state
+
+    DataPoints:
+      type: object
+      properties:
+        text:
+          type: array
+          items:
+            type: string
+          default: []
+        images:
+          type: array
+          items:
+            type: string
+          default: []
+        citations:
+          type: array
+          items:
+            type: string
+          default: []
+
+    Thought:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+
+    ResponseContext:
+      type: object
+      properties:
+        data_points:
+          $ref: '#/components/schemas/DataPoints'
+        thoughts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Thought'
+          default: []
+        followup_questions:
+          type: array
+          items:
+            type: string
+          default: []
+
+    ChatResponse:
+      type: object
+      required:
+        - message
+        - context
+      properties:
+        message:
+          $ref: '#/components/schemas/Message'
+        context:
+          $ref: '#/components/schemas/ResponseContext'
+        session_state:
+          type: object
+          description: Optional session state
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details
+

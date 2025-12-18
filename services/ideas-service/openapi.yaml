@@ -1,0 +1,501 @@
+openapi: 3.1.0
+info:
+  title: Keiko Ideas Service API
+  version: 0.1.0
+  description: |
+    Ideas service for managing innovation ideas, submissions, and recommendations.
+    Supports idea submission, similarity detection, and impact scoring.
+  contact:
+    name: Keiko Team
+    email: support@keiko.ai
+
+servers:
+  - url: http://localhost:8005
+    description: Local development
+  - url: https://ideas-service.keiko.ai
+    description: Production
+
+tags:
+  - name: Ideas
+    description: Idea management endpoints
+  - name: Health
+    description: Health check endpoints
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the service
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /ready:
+    get:
+      summary: Readiness check
+      description: Returns whether the service is ready to accept requests
+      operationId: readinessCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/ideas:
+    get:
+      summary: List ideas
+      description: List all ideas with optional filtering and pagination
+      operationId: listIdeas
+      tags:
+        - Ideas
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/IdeaStatus'
+          description: Filter by status
+        - name: department
+          in: query
+          schema:
+            type: string
+          description: Filter by department
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of ideas to skip
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Maximum number of ideas to return
+      responses:
+        '200':
+          description: List of ideas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdeaListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Submit idea
+      description: Submit a new idea for review
+      operationId: submitIdea
+      tags:
+        - Ideas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdeaSubmission'
+      responses:
+        '201':
+          description: Idea created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ideas/{idea_id}:
+    get:
+      summary: Get idea
+      description: Get details of a specific idea
+      operationId: getIdea
+      tags:
+        - Ideas
+      parameters:
+        - name: idea_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Idea ID
+      responses:
+        '200':
+          description: Idea details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        '404':
+          description: Idea not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update idea
+      description: Update an existing idea
+      operationId: updateIdea
+      tags:
+        - Ideas
+      parameters:
+        - name: idea_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Idea ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdeaUpdate'
+      responses:
+        '200':
+          description: Idea updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        '404':
+          description: Idea not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete idea
+      description: Delete an idea
+      operationId: deleteIdea
+      tags:
+        - Ideas
+      parameters:
+        - name: idea_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Idea ID
+      responses:
+        '200':
+          description: Idea deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '404':
+          description: Idea not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ideas/{idea_id}/similar:
+    get:
+      summary: Find similar ideas
+      description: Find ideas similar to the specified idea
+      operationId: findSimilarIdeas
+      tags:
+        - Ideas
+      parameters:
+        - name: idea_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Idea ID
+        - name: threshold
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+            default: 0.7
+          description: Similarity threshold
+      responses:
+        '200':
+          description: Similar ideas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimilarIdeasResponse'
+        '404':
+          description: Idea not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    IdeaStatus:
+      type: string
+      enum:
+        - draft
+        - submitted
+        - under_review
+        - approved
+        - rejected
+        - implemented
+      description: Idea status
+
+    RecommendationClass:
+      type: string
+      enum:
+        - quick_win
+        - high_leverage
+        - strategic
+        - evaluate
+      description: Recommendation classification
+
+    IdeaSubmission:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Idea title
+        description:
+          type: string
+          minLength: 10
+          description: Detailed description
+        problem_description:
+          type: string
+          description: Description of the problem being solved
+        expected_benefit:
+          type: string
+          description: Expected benefits of implementing the idea
+        department:
+          type: string
+          description: Department submitting the idea
+
+    IdeaUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          minLength: 10
+        problem_description:
+          type: string
+        expected_benefit:
+          type: string
+        status:
+          $ref: '#/components/schemas/IdeaStatus'
+
+    Idea:
+      type: object
+      required:
+        - idea_id
+        - title
+        - description
+        - status
+        - submitter_id
+        - created_at
+        - updated_at
+      properties:
+        idea_id:
+          type: string
+          description: Unique idea identifier
+        title:
+          type: string
+          description: Idea title
+        description:
+          type: string
+          description: Detailed description
+        problem_description:
+          type: string
+          description: Problem being solved
+        expected_benefit:
+          type: string
+          description: Expected benefits
+        status:
+          $ref: '#/components/schemas/IdeaStatus'
+        submitter_id:
+          type: string
+          description: ID of the user who submitted the idea
+        submitter_name:
+          type: string
+          description: Name of the submitter
+        department:
+          type: string
+          description: Department
+        created_at:
+          type: integer
+          format: int64
+          description: Creation timestamp (Unix epoch)
+        updated_at:
+          type: integer
+          format: int64
+          description: Last update timestamp (Unix epoch)
+        impact_score:
+          type: number
+          minimum: 0.0
+          maximum: 10.0
+          description: Impact score (0-10)
+        feasibility_score:
+          type: number
+          minimum: 0.0
+          maximum: 10.0
+          description: Feasibility score (0-10)
+        recommendation_class:
+          $ref: '#/components/schemas/RecommendationClass'
+        tags:
+          type: array
+          items:
+            type: string
+          description: Idea tags
+
+    SimilarIdea:
+      type: object
+      required:
+        - idea_id
+        - title
+        - summary
+        - similarity_score
+        - status
+      properties:
+        idea_id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        similarity_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        status:
+          $ref: '#/components/schemas/IdeaStatus'
+
+    SimilarIdeasResponse:
+      type: object
+      required:
+        - similar_ideas
+        - threshold
+      properties:
+        similar_ideas:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimilarIdea'
+        threshold:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+
+    IdeaListResponse:
+      type: object
+      required:
+        - ideas
+        - total_count
+      properties:
+        ideas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Idea'
+        total_count:
+          type: integer
+
+    DeleteResponse:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details
+

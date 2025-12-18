@@ -1,0 +1,364 @@
+openapi: 3.1.0
+info:
+  title: Keiko Document Service API
+  version: 0.1.0
+  description: |
+    Document service for managing document uploads, downloads, and metadata
+    with Azure Blob Storage integration.
+  contact:
+    name: Keiko Team
+    email: support@keiko.ai
+
+servers:
+  - url: http://localhost:8003
+    description: Local development
+  - url: https://document-service.keiko.ai
+    description: Production
+
+tags:
+  - name: Documents
+    description: Document management endpoints
+  - name: Health
+    description: Health check endpoints
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the service
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /ready:
+    get:
+      summary: Readiness check
+      description: Returns whether the service is ready to accept requests
+      operationId: readinessCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/documents/upload:
+    post:
+      summary: Upload document
+      description: Upload a document to blob storage
+      operationId: uploadDocument
+      tags:
+        - Documents
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload
+      responses:
+        '200':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '400':
+          description: Bad request (invalid file type or size)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/documents/{document_id}:
+    get:
+      summary: Get document metadata
+      description: Retrieve metadata for a specific document
+      operationId: getDocumentMetadata
+      tags:
+        - Documents
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Document ID
+      responses:
+        '200':
+          description: Document metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentMetadata'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete document
+      description: Delete a document from blob storage
+      operationId: deleteDocument
+      tags:
+        - Documents
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Document ID
+      responses:
+        '200':
+          description: Document deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/documents/{document_id}/download:
+    get:
+      summary: Download document
+      description: Download a document from blob storage
+      operationId: downloadDocument
+      tags:
+        - Documents
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Document ID
+      responses:
+        '200':
+          description: Document file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/documents:
+    get:
+      summary: List documents
+      description: List all documents with pagination
+      operationId: listDocuments
+      tags:
+        - Documents
+      parameters:
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of documents to skip
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+          description: Maximum number of documents to return
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    DocumentMetadata:
+      type: object
+      required:
+        - id
+        - filename
+        - content_type
+        - size
+        - uploaded_at
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Document ID
+        filename:
+          type: string
+          description: Original filename
+        content_type:
+          type: string
+          description: MIME type
+        size:
+          type: integer
+          description: File size in bytes
+        uploaded_at:
+          type: string
+          format: date-time
+          description: Upload timestamp
+        uploaded_by:
+          type: string
+          description: User ID who uploaded the document
+        status:
+          type: string
+          enum: [uploaded, processing, indexed, failed]
+          description: Document processing status
+        blob_url:
+          type: string
+          format: uri
+          description: Blob storage URL
+
+    UploadResponse:
+      type: object
+      required:
+        - document_id
+        - filename
+        - size
+        - status
+        - message
+      properties:
+        document_id:
+          type: string
+          format: uuid
+          description: Generated document ID
+        filename:
+          type: string
+          description: Original filename
+        size:
+          type: integer
+          description: File size in bytes
+        status:
+          type: string
+          enum: [uploaded, processing, indexed, failed]
+          description: Document status
+        message:
+          type: string
+          description: Status message
+
+    DocumentListResponse:
+      type: object
+      required:
+        - documents
+        - total_count
+      properties:
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentMetadata'
+          description: Array of document metadata
+        total_count:
+          type: integer
+          description: Total number of documents
+
+    DeleteResponse:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          description: Operation status
+        message:
+          type: string
+          description: Status message
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details
+

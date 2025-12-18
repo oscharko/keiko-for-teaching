@@ -1,0 +1,209 @@
+openapi: 3.1.0
+info:
+  title: Keiko Search Service API
+  version: 0.1.0
+  description: |
+    Search service with Azure AI Search integration, supporting hybrid search
+    (text + vector) and semantic ranking.
+  contact:
+    name: Keiko Team
+    email: support@keiko.ai
+
+servers:
+  - url: http://localhost:8002
+    description: Local development
+  - url: https://search-service.keiko.ai
+    description: Production
+
+tags:
+  - name: Search
+    description: Search endpoints with hybrid search capabilities
+  - name: Health
+    description: Health check endpoints
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the service
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /ready:
+    get:
+      summary: Readiness check
+      description: Returns whether the service is ready to accept requests
+      operationId: readinessCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/search:
+    post:
+      summary: Search documents
+      description: |
+        Search documents using hybrid search combining full-text search (BM25),
+        vector similarity search, and optional semantic ranking.
+      operationId: searchDocuments
+      tags:
+        - Search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Successful search
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    SearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Search query text
+          minLength: 1
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+          description: Number of results to return
+        use_semantic_ranker:
+          type: boolean
+          default: true
+          description: Use semantic ranker for better relevance
+        query_vector:
+          type: array
+          items:
+            type: number
+          description: Optional query embedding for vector search
+        filter_expression:
+          type: string
+          description: Optional OData filter expression
+
+    SearchResult:
+      type: object
+      required:
+        - id
+        - content
+        - score
+      properties:
+        id:
+          type: string
+          description: Document ID
+        content:
+          type: string
+          description: Document content
+        title:
+          type: string
+          description: Document title
+        source:
+          type: string
+          description: Document source
+        score:
+          type: number
+          format: float
+          description: Search relevance score
+        reranker_score:
+          type: number
+          format: float
+          description: Semantic reranker score
+        highlights:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Highlighted text snippets
+
+    SearchResponse:
+      type: object
+      required:
+        - results
+        - total_count
+        - query
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+          description: Array of search results
+        total_count:
+          type: integer
+          description: Total number of matching documents
+        query:
+          type: string
+          description: Original search query
+        cached:
+          type: boolean
+          default: false
+          description: Whether the result was served from cache
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details
+

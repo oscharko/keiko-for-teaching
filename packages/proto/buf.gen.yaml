@@ -1,0 +1,34 @@
+# buf.gen.yaml - Code generation configuration for Protocol Buffers
+version: v1
+
+plugins:
+  # Python code generation
+  - plugin: python
+    out: ../../services/ingestion-service/proto
+    opt:
+      - paths=source_relative
+
+  # Python gRPC code generation
+  - plugin: pyi
+    out: ../../services/ingestion-service/proto
+    opt:
+      - paths=source_relative
+
+  # Python gRPC stubs
+  - plugin: grpc-python
+    out: ../../services/ingestion-service/proto
+    opt:
+      - paths=source_relative
+
+  # TypeScript code generation
+  - plugin: es
+    out: ../proto-ts/src
+    opt:
+      - target=ts
+
+  # TypeScript gRPC code generation
+  - plugin: connect-es
+    out: ../proto-ts/src
+    opt:
+      - target=ts
+

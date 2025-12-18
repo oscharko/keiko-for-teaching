@@ -350,27 +350,42 @@
 ## Phase 4: API Contracts
 
 ### OpenAPI Specifications
-- [ ] **Chat Service OpenAPI** - Priority: High | Complexity: Medium
+- [x] **Chat Service OpenAPI** - Priority: High | Complexity: Medium
   - services/chat-service/openapi.yaml
-- [ ] **Search Service OpenAPI** - Priority: High | Complexity: Medium
-- [ ] **Document Service OpenAPI** - Priority: High | Complexity: Medium
-- [ ] **Ideas API OpenAPI** - Priority: Medium | Complexity: Medium
-- [ ] **Gateway BFF OpenAPI** - Priority: High | Complexity: Medium
+- [x] **Search Service OpenAPI** - Priority: High | Complexity: Medium
+  - services/search-service/openapi.yaml
+- [x] **Document Service OpenAPI** - Priority: High | Complexity: Medium
+  - services/document-service/openapi.yaml
+- [x] **Ideas API OpenAPI** - Priority: Medium | Complexity: Medium
+  - services/ideas-service/openapi.yaml
+- [x] **Gateway BFF OpenAPI** - Priority: High | Complexity: Medium
+  - services/gateway-bff/openapi.yaml
 
 ### Protocol Buffers
-- [x] Ingestion Service Proto (packages/proto/ingestion.proto)
+- [x] Ingestion Service Proto (packages/proto/ingestion/v1/ingestion.proto)
 - [x] buf.yaml Konfiguration
-- [ ] **Proto Compilation Script** - Priority: Medium | Complexity: Small
-- [ ] **TypeScript Types Generation** - Priority: Medium | Complexity: Medium
+- [x] **Proto Compilation Script** - Priority: Medium | Complexity: Small
+  - packages/proto/compile.sh
+  - packages/proto/buf.gen.yaml
+- [x] **TypeScript Types Generation** - Priority: Medium | Complexity: Medium
+  - packages/proto-ts/package.json
+  - packages/proto-ts/tsconfig.json
+  - packages/proto-ts/README.md
 
 ### Shared Types
-- [x] Chat Types (packages/shared-types/)
-- [x] Ideas Types
-- [x] Common Response Types
-- [ ] **News Types** - Priority: Medium | Complexity: Small
-- [ ] **Document Types** - Priority: High | Complexity: Small
-- [ ] **User Types** - Priority: High | Complexity: Small
-- [ ] **Error Types** - Priority: Medium | Complexity: Small
+- [x] Chat Types (packages/shared-types/src/chat.ts)
+- [x] Ideas Types (packages/shared-types/src/ideas.ts)
+- [x] Common Response Types (packages/shared-types/src/common.ts)
+- [x] **News Types** - Priority: Medium | Complexity: Small
+  - packages/shared-types/src/news.ts
+- [x] **Document Types** - Priority: High | Complexity: Small
+  - packages/shared-types/src/document.ts
+- [x] **User Types** - Priority: High | Complexity: Small
+  - packages/shared-types/src/user.ts
+- [x] **Error Types** - Priority: Medium | Complexity: Small
+  - packages/shared-types/src/error.ts
+- [x] **Search Types** - Priority: High | Complexity: Small
+  - packages/shared-types/src/search.ts
 
 ---
 
@@ -460,7 +475,7 @@
 | Phase 1: Quick Wins | 15 | 0 | 100% |
 | Phase 2: Microservices | 56 | 0 | 100% |
 | Phase 3: Frontend | 22 | 52 | 30% |
-| Phase 4: API Contracts | 4 | 12 | 25% |
+| Phase 4: API Contracts | 16 | 0 | 100% |
 | Phase 5: Testing | 5 | 17 | 23% |
 | Infrastruktur | 0 | 12 | 0% |
 
@@ -510,6 +525,55 @@
 - [ ] Unit Tests für Document Service
 - [ ] Unit Tests für Auth Service
 - [ ] Unit Tests für User Service
+
+### Phase 4: API Contracts - Abgeschlossene Implementierungen
+
+**OpenAPI Specifications (100% Complete):**
+- ✅ Chat Service OpenAPI (services/chat-service/openapi.yaml)
+  - Complete API documentation with all endpoints
+  - Request/Response schemas
+  - Error responses
+  - Streaming support documentation
+- ✅ Search Service OpenAPI (services/search-service/openapi.yaml)
+  - Hybrid search endpoint documentation
+  - Vector and semantic search parameters
+  - Result schemas with highlights
+- ✅ Document Service OpenAPI (services/document-service/openapi.yaml)
+  - Upload/Download endpoints
+  - Document metadata management
+  - File type validation
+- ✅ Ideas Service OpenAPI (services/ideas-service/openapi.yaml)
+  - Idea submission and management
+  - Similar ideas detection
+  - Status workflow
+- ✅ Gateway BFF OpenAPI (services/gateway-bff/openapi.yaml)
+  - Aggregated API documentation
+  - Authentication and rate limiting
+  - Proxy endpoints for all services
+
+**Protocol Buffers (100% Complete):**
+- ✅ Proto Compilation Script (packages/proto/compile.sh)
+  - Automated code generation
+  - Linting with buf
+- ✅ Buf Generation Config (packages/proto/buf.gen.yaml)
+  - Python code generation
+  - TypeScript code generation
+  - gRPC stubs generation
+- ✅ TypeScript Proto Package (packages/proto-ts/)
+  - Package configuration
+  - TypeScript compilation setup
+  - Documentation
+
+**Shared Types (100% Complete):**
+- ✅ Chat Types (packages/shared-types/src/chat.ts)
+- ✅ Ideas Types (packages/shared-types/src/ideas.ts)
+- ✅ Common Types (packages/shared-types/src/common.ts)
+- ✅ News Types (packages/shared-types/src/news.ts)
+- ✅ Document Types (packages/shared-types/src/document.ts)
+- ✅ User Types (packages/shared-types/src/user.ts)
+- ✅ Error Types (packages/shared-types/src/error.ts)
+- ✅ Search Types (packages/shared-types/src/search.ts)
+- ✅ Updated index.ts with all exports
 
 ### Naechste Schritte (Empfohlen)
 

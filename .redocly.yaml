@@ -1,0 +1,49 @@
+# Redocly configuration for OpenAPI validation
+# https://redocly.com/docs/cli/configuration/
+
+apis:
+  gateway-bff@v0.1.0:
+    root: services/gateway-bff/openapi.yaml
+  chat-service@v0.1.0:
+    root: services/chat-service/openapi.yaml
+  search-service@v0.1.0:
+    root: services/search-service/openapi.yaml
+  document-service@v0.1.0:
+    root: services/document-service/openapi.yaml
+  ideas-service@v0.1.0:
+    root: services/ideas-service/openapi.yaml
+
+lint:
+  extends:
+    - recommended
+  
+  rules:
+    # Disable some rules that are too strict for our use case
+    no-unused-components: warning
+    operation-operationId-unique: error
+    operation-summary: error
+    operation-description: warning
+    tag-description: warning
+    info-contact: error
+    info-license: off
+    
+    # Security
+    operation-security-defined: error
+    
+    # Best practices
+    no-ambiguous-paths: error
+    no-path-trailing-slash: error
+    path-not-include-query: error
+    
+    # Response validation
+    operation-2xx-response: error
+    operation-4xx-response: warning
+    
+  decorators:
+    remove-x-internal: off
+
+theme:
+  openapi:
+    schemaExpansionLevel: 2
+    jsonSampleExpandLevel: 2
+
