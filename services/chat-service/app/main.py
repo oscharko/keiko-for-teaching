@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncGenerator
 
+import httpx
 from azure.identity import get_bearer_token_provider
 from fastapi import FastAPI
 from openai import AsyncAzureOpenAI
@@ -52,11 +53,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     await app.state.cache_client.connect()
 
+    # Initialize HTTP client for calling other services (e.g., search service)
+    app.state.http_client = httpx.AsyncClient()
+
     yield
 
     # Cleanup
     await app.state.openai_client.close()
     await app.state.cache_client.disconnect()
+    await app.state.http_client.aclose()
 
 
 app = FastAPI(

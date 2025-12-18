@@ -4,11 +4,26 @@ kind: Kustomization
 namespace: keiko
 
 resources:
+  # Namespace
   - namespace.yaml
+
+  # Infrastructure
+  - ingress-nginx.yaml
+  - cert-manager.yaml
+  - ingress.yaml
+  - services.yaml
+  - configmaps.yaml
+  # Note: secrets.yaml is not included here - must be created from template
+
+  # Deployments
   - frontend-deployment.yaml
   - gateway-deployment.yaml
   - chat-deployment.yaml
   - ingestion-deployment.yaml
+  - search-deployment.yaml
+  - document-deployment.yaml
+  - auth-deployment.yaml
+  - user-deployment.yaml
 
 commonLabels:
   app.kubernetes.io/part-of: keiko

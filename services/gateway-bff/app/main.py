@@ -16,7 +16,10 @@ from cache import get_cache_client
 
 from .config import settings
 from .middleware import SessionMiddleware
-from .routers import chat, health
+from .middleware.auth import AuthenticationMiddleware
+from .middleware.logging import RequestLoggingMiddleware
+from .middleware.rate_limit import RateLimitMiddleware
+from .routers import chat, documents, health, ideas, news, search
 
 
 @asynccontextmanager
@@ -54,6 +57,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add request logging middleware (first, to log everything)
+app.add_middleware(RequestLoggingMiddleware)
+
+# Add rate limiting middleware
+app.add_middleware(
+    RateLimitMiddleware,
+    requests_per_minute=settings.rate_limit_requests_per_minute,
+)
+
+# Add authentication middleware (if enabled)
+if settings.enable_auth:
+    app.add_middleware(
+        AuthenticationMiddleware,
+        auth_service_url=settings.auth_service_url,
+    )
+
 # Add session middleware
 app.add_middleware(
     SessionMiddleware,
@@ -61,6 +80,11 @@ app.add_middleware(
     session_ttl=3600,  # 1 hour
 )
 
+# Include routers
 app.include_router(health.router)
 app.include_router(chat.router, prefix="/api")
+app.include_router(search.router, prefix="/api")
+app.include_router(documents.router, prefix="/api")
+app.include_router(ideas.router, prefix="/api")
+app.include_router(news.router, prefix="/api")
 

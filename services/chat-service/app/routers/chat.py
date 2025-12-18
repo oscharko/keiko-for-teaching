@@ -3,6 +3,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from ..config import settings
@@ -28,6 +29,8 @@ class ChatOverrides(BaseModel):
     top: int | None = None
     temperature: float | None = None
     suggest_followup_questions: bool | None = None
+    use_rag: bool | None = None  # Enable RAG (Retrieval Augmented Generation)
+    stream: bool | None = None  # Enable streaming response
 
 
 class ChatContext(BaseModel):
@@ -68,25 +71,53 @@ class ChatResponse(BaseModel):
     session_state: Any | None = None
 
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat(request: Request, chat_request: ChatRequest) -> ChatResponse:
-    """Process chat request and return AI response."""
+@router.post("/chat")
+async def chat(
+    request: Request, chat_request: ChatRequest
+) -> ChatResponse | StreamingResponse:
+    """Process chat request and return AI response.
+
+    Supports both standard and streaming responses, with optional RAG.
+    """
     openai_client = request.app.state.openai_client
     cache_client = request.app.state.cache_client
-    chat_service = ChatService(openai_client, settings)
+    http_client = request.app.state.http_client
+    chat_service = ChatService(openai_client, settings, http_client)
 
     overrides = chat_request.context.overrides if chat_request.context else None
     messages = [{"role": m.role, "content": m.content} for m in chat_request.messages]
     temperature = overrides.temperature if overrides else None
     suggest_followup = overrides.suggest_followup_questions if overrides else True
+    use_rag = overrides.use_rag if overrides else False
+    stream = overrides.stream if overrides else False
+    top_k = overrides.top if overrides else 5
 
-    # Try to get cached response
-    cached = await get_cached_response(
-        cache_client,
-        messages,
-        temperature=temperature,
-        suggest_followup=suggest_followup,
-    )
+    # Streaming response
+    if stream:
+        async def generate():
+            async for chunk in chat_service.chat_stream(
+                messages=messages,
+                temperature=temperature,
+                use_rag=use_rag,
+                top_k=top_k,
+            ):
+                yield chunk
+
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream",
+        )
+
+    # Standard response (with caching)
+    # Try to get cached response (only if not using RAG)
+    cached = None
+    if not use_rag:
+        cached = await get_cached_response(
+            cache_client,
+            messages,
+            temperature=temperature,
+            suggest_followup=suggest_followup,
+        )
 
     if cached:
         # Return cached response
@@ -97,22 +128,27 @@ async def chat(request: Request, chat_request: ChatRequest) -> ChatResponse:
             messages=messages,
             temperature=temperature,
             suggest_followup=suggest_followup,
+            use_rag=use_rag,
+            top_k=top_k,
         )
 
-        # Cache the response (1 hour TTL)
-        await cache_response(
-            cache_client,
-            messages,
-            response,
-            ttl=3600,
-            temperature=temperature,
-            suggest_followup=suggest_followup,
-        )
+        # Cache the response (1 hour TTL, only if not using RAG)
+        if not use_rag:
+            await cache_response(
+                cache_client,
+                messages,
+                response,
+                ttl=3600,
+                temperature=temperature,
+                suggest_followup=suggest_followup,
+            )
 
     return ChatResponse(
         message=Message(role="assistant", content=response["content"]),
         context=ResponseContext(
-            data_points=DataPoints(),
+            data_points=DataPoints(
+                citations=response.get("citations", []),
+            ),
             thoughts=response.get("thoughts", []),
             followup_questions=response.get("followup_questions", []),
         ),

@@ -27,39 +27,13 @@ impl IngestionService for IngestionServiceImpl {
         let start = std::time::Instant::now();
         let req = request.into_inner();
 
-        let parser = LocalPdfParser::new();
-        let pages = parser
-            .parse(Cursor::new(&req.content))
-            .map_err(|e| Status::invalid_argument(e.to_string()))?;
-
-        let options = req.options.unwrap_or_default();
-        let max_tokens = if options.max_tokens_per_chunk > 0 {
-            options.max_tokens_per_chunk as usize
-        } else {
-            500
-        };
-        let overlap = if options.overlap_percent > 0 {
-            options.overlap_percent as usize
-        } else {
-            10
-        };
-
-        let splitter = SentenceTextSplitter::new(max_tokens, overlap);
-        let chunks = splitter.split(&pages);
-
+        let (chunks, page_count, _doc_len) = process_document(&req)?;
         let total_tokens: usize = chunks.iter().map(|c| c.token_count).sum();
 
         let proto_chunks: Vec<ProtoChunk> = chunks
-            .into_iter()
-            .map(|c| ProtoChunk {
-                id: c.id,
-                page_num: c.page_num as i32,
-                text: c.text,
-                token_count: c.token_count as i32,
-                char_count: c.char_count as i32,
-                embedding: vec![],
-                images: vec![],
-            })
+            .iter()
+            .cloned()
+            .map(map_chunk_to_proto)
             .collect();
 
         Ok(Response::new(ParseDocumentResponse {
@@ -68,7 +42,7 @@ impl IngestionService for IngestionServiceImpl {
                 filename: req.filename,
                 content_type: req.content_type,
                 size_bytes: req.content.len() as i64,
-                page_count: pages.len() as i32,
+                page_count: page_count as i32,
                 title: String::new(),
                 author: String::new(),
                 created_at: String::new(),
@@ -87,9 +61,17 @@ impl IngestionService for IngestionServiceImpl {
 
     async fn parse_document_stream(
         &self,
-        _request: Request<ParseDocumentRequest>,
+        request: Request<ParseDocumentRequest>,
     ) -> Result<Response<Self::ParseDocumentStreamStream>, Status> {
-        Err(Status::unimplemented("Streaming not yet implemented"))
+        let req = request.into_inner();
+        let (chunks, _, _) = process_document(&req)?;
+
+        let proto_chunks: Vec<Result<ProtoChunk, Status>> = chunks
+            .into_iter()
+            .map(|c| Ok(map_chunk_to_proto(c)))
+            .collect();
+
+        Ok(Response::new(futures::stream::iter(proto_chunks)))
     }
 
     async fn get_supported_formats(
@@ -112,6 +94,42 @@ impl IngestionService for IngestionServiceImpl {
             version: "0.1.0".to_string(),
             uptime_seconds: 0,
         }))
+    }
+}
+
+fn process_document(req: &ParseDocumentRequest) -> Result<(Vec<crate::splitter::Chunk>, usize, usize), Status> {
+    let parser = LocalPdfParser::new();
+    let pages = parser
+        .parse(Cursor::new(&req.content))
+        .map_err(|e| Status::invalid_argument(e.to_string()))?;
+
+    let options = req.options.as_ref().cloned().unwrap_or_default();
+    let max_tokens = if options.max_tokens_per_chunk > 0 {
+        options.max_tokens_per_chunk as usize
+    } else {
+        500
+    };
+    let overlap = if options.overlap_percent > 0 {
+        options.overlap_percent as usize
+    } else {
+        10
+    };
+
+    let splitter = SentenceTextSplitter::new(max_tokens, overlap);
+    let chunks = splitter.split(&pages);
+
+    Ok((chunks, pages.len(), req.content.len()))
+}
+
+fn map_chunk_to_proto(c: crate::splitter::Chunk) -> ProtoChunk {
+    ProtoChunk {
+        id: c.id,
+        page_num: c.page_num as i32,
+        text: c.text,
+        token_count: c.token_count as i32,
+        char_count: c.char_count as i32,
+        embedding: vec![],
+        images: vec![],
     }
 }
 

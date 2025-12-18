@@ -26,6 +26,18 @@ serde_json = "1.0"
 pdf-extract = "0.7"
 lopdf = "0.34"
 
+# DOCX parsing
+docx-rs = "0.4"
+
+# HTML parsing
+scraper = "0.20"
+
+# HTTP client for Azure Document Intelligence
+reqwest = { version = "0.12", features = ["json"] }
+
+# Async trait
+async-trait = "0.1"
+
 # Azure SDK
 azure_core = "0.21"
 azure_identity = "0.21"
