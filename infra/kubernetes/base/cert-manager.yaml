@@ -1,0 +1,63 @@
+# Cert-Manager Configuration for Keiko
+# This file contains ClusterIssuers for Let's Encrypt certificates
+# Prerequisites: cert-manager must be installed in the cluster
+# Install with: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/instance: keiko
+spec:
+  acme:
+    # Staging server for testing
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@keiko.example.com  # Replace with your email
+    privateKeySecretRef:
+      name: letsencrypt-staging-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/instance: keiko
+spec:
+  acme:
+    # Production server
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@keiko.example.com  # Replace with your email
+    privateKeySecretRef:
+      name: letsencrypt-prod-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+
+---
+# Certificate for the main domain (optional - can also be done via Ingress annotations)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: keiko-tls
+  namespace: keiko
+spec:
+  secretName: keiko-tls-secret
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - keiko.example.com  # Replace with your domain
+    - www.keiko.example.com
+  # Automatically renew 30 days before expiry
+  renewBefore: 720h  # 30 days
+

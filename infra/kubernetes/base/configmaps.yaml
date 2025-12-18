@@ -1,0 +1,180 @@
+# ConfigMaps for Keiko Services
+# Non-sensitive configuration data
+
+---
+# Gateway BFF ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  namespace: keiko
+  labels:
+    app: gateway-bff
+data:
+  # Service URLs
+  CHAT_SERVICE_URL: "http://chat-service:80"
+  SEARCH_SERVICE_URL: "http://search-service:80"
+  DOCUMENT_SERVICE_URL: "http://document-service:80"
+  AUTH_SERVICE_URL: "http://auth-service:80"
+  USER_SERVICE_URL: "http://user-service:80"
+  
+  # Redis
+  REDIS_URL: "redis://redis-service:6379"
+  
+  # CORS
+  CORS_ORIGINS: "https://keiko.example.com,https://staging.keiko.example.com"
+  
+  # Server
+  HOST: "0.0.0.0"
+  PORT: "8000"
+  DEBUG: "false"
+
+---
+# Chat Service ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chat-config
+  namespace: keiko
+  labels:
+    app: chat-service
+data:
+  # Azure OpenAI
+  AZURE_OPENAI_DEPLOYMENT: "gpt-4o"
+  AZURE_OPENAI_API_VERSION: "2024-08-01-preview"
+  
+  # Search Service
+  SEARCH_SERVICE_URL: "http://search-service:80"
+  
+  # Redis
+  REDIS_URL: "redis://redis-service:6379"
+  
+  # Server
+  HOST: "0.0.0.0"
+  PORT: "8001"
+  DEBUG: "false"
+  
+  # Chat defaults
+  DEFAULT_TEMPERATURE: "0.7"
+  DEFAULT_MAX_TOKENS: "4096"
+  DEFAULT_TOP_K: "5"
+
+---
+# Search Service ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: search-config
+  namespace: keiko
+  labels:
+    app: search-service
+data:
+  # Azure AI Search
+  AZURE_SEARCH_API_VERSION: "2024-07-01"
+  AZURE_SEARCH_INDEX_NAME: "keiko-documents"
+  
+  # Redis
+  REDIS_URL: "redis://redis-service:6379"
+  
+  # Server
+  HOST: "0.0.0.0"
+  PORT: "8002"
+  DEBUG: "false"
+  
+  # Search defaults
+  DEFAULT_TOP_K: "5"
+  DEFAULT_SEMANTIC_CONFIGURATION: "default"
+
+---
+# Document Service ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: document-config
+  namespace: keiko
+  labels:
+    app: document-service
+data:
+  # Azure Blob Storage
+  AZURE_STORAGE_CONTAINER_NAME: "documents"
+  
+  # Ingestion Service
+  INGESTION_SERVICE_URL: "http://ingestion-service:50051"
+  
+  # Search Service
+  SEARCH_SERVICE_URL: "http://search-service:80"
+  
+  # Redis
+  REDIS_URL: "redis://redis-service:6379"
+  
+  # Server
+  HOST: "0.0.0.0"
+  PORT: "8003"
+  DEBUG: "false"
+  
+  # Upload limits
+  MAX_FILE_SIZE: "104857600"  # 100MB in bytes
+  ALLOWED_EXTENSIONS: "pdf,docx,txt,md,html"
+
+---
+# Auth Service ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-config
+  namespace: keiko
+  labels:
+    app: auth-service
+data:
+  # Azure AD B2C
+  AZURE_AD_B2C_TENANT_NAME: "keiko"
+  AZURE_AD_B2C_POLICY_NAME: "B2C_1_signupsignin"
+  
+  # JWT
+  JWT_ALGORITHM: "RS256"
+  JWT_EXPIRATION_MINUTES: "60"
+  
+  # Redis
+  REDIS_URL: "redis://redis-service:6379"
+  
+  # Server
+  HOST: "0.0.0.0"
+  PORT: "8004"
+  DEBUG: "false"
+
+---
+# User Service ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-config
+  namespace: keiko
+  labels:
+    app: user-service
+data:
+  # Redis
+  REDIS_URL: "redis://redis-service:6379"
+  
+  # Server
+  HOST: "0.0.0.0"
+  PORT: "8005"
+  DEBUG: "false"
+
+---
+# Ingestion Service ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingestion-config
+  namespace: keiko
+  labels:
+    app: ingestion-service
+data:
+  # Server
+  GRPC_PORT: "50051"
+  HTTP_PORT: "8080"
+  
+  # Processing
+  MAX_CHUNK_SIZE: "1000"
+  CHUNK_OVERLAP: "200"
+

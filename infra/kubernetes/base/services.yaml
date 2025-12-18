@@ -1,0 +1,178 @@
+# Kubernetes Services for Keiko
+# ClusterIP services for internal communication between pods
+
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: keiko
+  labels:
+    app: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+      protocol: TCP
+
+---
+# Gateway BFF Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-bff
+  namespace: keiko
+  labels:
+    app: gateway-bff
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway-bff
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      protocol: TCP
+
+---
+# Chat Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+  namespace: keiko
+  labels:
+    app: chat-service
+spec:
+  type: ClusterIP
+  selector:
+    app: chat-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8001
+      protocol: TCP
+
+---
+# Search Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-service
+  namespace: keiko
+  labels:
+    app: search-service
+spec:
+  type: ClusterIP
+  selector:
+    app: search-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8002
+      protocol: TCP
+
+---
+# Document Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-service
+  namespace: keiko
+  labels:
+    app: document-service
+spec:
+  type: ClusterIP
+  selector:
+    app: document-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8003
+      protocol: TCP
+
+---
+# Auth Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: keiko
+  labels:
+    app: auth-service
+spec:
+  type: ClusterIP
+  selector:
+    app: auth-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8004
+      protocol: TCP
+
+---
+# User Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: keiko
+  labels:
+    app: user-service
+spec:
+  type: ClusterIP
+  selector:
+    app: user-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8005
+      protocol: TCP
+
+---
+# Ingestion Service (gRPC + HTTP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion-service
+  namespace: keiko
+  labels:
+    app: ingestion-service
+spec:
+  type: ClusterIP
+  selector:
+    app: ingestion-service
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+      protocol: TCP
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+
+---
+# Redis Service (if deploying Redis in-cluster)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: keiko
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+
