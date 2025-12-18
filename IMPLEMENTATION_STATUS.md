@@ -232,15 +232,18 @@
 - [x] Textarea Component
 - [x] Avatar Component
 - [x] ScrollArea Component
-- [ ] **Card Component** - Priority: Medium | Complexity: Small
-- [ ] **Dialog Component** - Priority: Medium | Complexity: Small
-- [ ] **Dropdown Menu Component** - Priority: Medium | Complexity: Small
-- [ ] **Tabs Component** - Priority: Medium | Complexity: Small
-- [ ] **Tooltip Component** - Priority: Low | Complexity: Small
-- [ ] **Sheet Component** - Priority: Medium | Complexity: Small
-- [ ] **Command Component** - Priority: Low | Complexity: Small
-- [ ] **Badge Component** - Priority: Low | Complexity: Small
-- [ ] **Skeleton Component** - Priority: Medium | Complexity: Small
+- [x] **Card Component** - Priority: Medium | Complexity: Small
+- [x] **Dialog Component** - Priority: Medium | Complexity: Small
+- [x] **Dropdown Menu Component** - Priority: Medium | Complexity: Small
+- [x] **Tabs Component** - Priority: Medium | Complexity: Small
+- [x] **Tooltip Component** - Priority: Low | Complexity: Small
+- [x] **Sheet Component** - Priority: Medium | Complexity: Small
+- [x] **Command Component** - Priority: Low | Complexity: Small
+- [x] **Badge Component** - Priority: Low | Complexity: Small
+- [x] **Skeleton Component** - Priority: Medium | Complexity: Small
+- [x] **Slider Component** - Priority: Medium | Complexity: Small
+- [x] **Progress Component** - Priority: Medium | Complexity: Small
+- [x] **Navigation Menu Component** - Priority: Medium | Complexity: Small
 
 ### Tailwind CSS / Keiko Branding
 - [x] Tailwind Konfiguration mit Keiko-Farben
@@ -252,82 +255,95 @@
 - [x] Zustand Chat Store (stores/chat.ts)
 - [x] Zustand Settings Store (stores/settings.ts)
 - [x] TanStack Query Provider (providers.tsx)
-- [ ] **Ideas Store** - Priority: Medium | Complexity: Small
-- [ ] **News Store** - Priority: Medium | Complexity: Small
-- [ ] **User Store** - Priority: High | Complexity: Small
+- [x] **Ideas Store** - Priority: Medium | Complexity: Small
+- [x] **News Store** - Priority: Medium | Complexity: Small
+- [x] **User Store** - Priority: High | Complexity: Small
 
 ### API Client
 - [x] Base API Client (lib/api.ts)
-- [ ] **Streaming API Support** - Priority: High | Complexity: Medium
-- [ ] **Error Handling Enhancement** - Priority: Medium | Complexity: Small
-- [ ] **Request Interceptors** - Priority: Medium | Complexity: Small
+- [x] **Streaming API Support** - Priority: High | Complexity: Medium
+- [x] **Error Handling Enhancement** - Priority: Medium | Complexity: Small
+- [x] **Request Interceptors** - Priority: Medium | Complexity: Small
+- [x] **Retry Logic with Exponential Backoff** - Priority: Medium | Complexity: Small
 
 ### Chat Feature
 - [x] ChatContainer Component
 - [x] ChatMessages Component
 - [x] ChatMessage Component
 - [x] ChatInput Component
-- [ ] **ChatSkeleton Component** - Priority: Medium | Complexity: Small
-- [ ] **Streaming Response Display** - Priority: High | Complexity: Medium
-- [ ] **Citations Display** - Priority: Medium | Complexity: Medium
-- [ ] **Data Points Display** - Priority: Medium | Complexity: Medium
-- [ ] **Follow-up Questions Clickable** - Priority: Medium | Complexity: Small
-- [ ] **Chat History Sidebar** - Priority: High | Complexity: Medium
-- [ ] **Clear Chat Button** - Priority: Low | Complexity: Small
+- [x] **ChatSkeleton Component** - Priority: Medium | Complexity: Small
+- [x] **Streaming Response Display** - Priority: High | Complexity: Medium
+- [x] **Citations Display** - Priority: Medium | Complexity: Medium
+- [x] **Data Points Display** - Priority: Medium | Complexity: Medium
+- [x] **Follow-up Questions Clickable** - Priority: Medium | Complexity: Small
+- [x] **Chat History Sidebar** - Priority: High | Complexity: Medium
+- [x] **Clear Chat Button** - Priority: Low | Complexity: Small
 
 ### Layout Components
 - [x] Header Component
-- [ ] **Sidebar Component** - Priority: High | Complexity: Medium
-- [ ] **Footer Component** - Priority: Low | Complexity: Small
-- [ ] **Navigation Menu** - Priority: High | Complexity: Medium
-- [ ] **Mobile Navigation** - Priority: Medium | Complexity: Medium
-- [ ] **Theme Toggle** - Priority: Medium | Complexity: Small
-- [ ] **Language Switcher** - Priority: Medium | Complexity: Small
+- [x] **Sidebar Component** - Priority: High | Complexity: Medium
+- [x] **Footer Component** - Priority: Low | Complexity: Small
+- [x] **Navigation Menu** - Priority: High | Complexity: Medium
+- [x] **Mobile Navigation** - Priority: Medium | Complexity: Medium
+- [x] **Theme Toggle** - Priority: Medium | Complexity: Small
+- [x] **Language Switcher** - Priority: Medium | Complexity: Small
 
 ### Ideas Hub Feature
-- [ ] **Ideas Page** - Priority: High | Complexity: Medium
+- [x] **Ideas Page** - Priority: High | Complexity: Medium
   - apps/frontend/src/app/ideas/page.tsx
-- [ ] **Idea Detail Page** - Priority: High | Complexity: Medium
+- [x] **Idea Detail Page** - Priority: High | Complexity: Medium
   - apps/frontend/src/app/ideas/[id]/page.tsx
-- [ ] **IdeaCard Component** - Priority: High | Complexity: Small
-- [ ] **IdeaForm Component** - Priority: High | Complexity: Medium
-- [ ] **IdeaList Component** - Priority: High | Complexity: Small
-- [ ] **SimilarIdeas Component** - Priority: Medium | Complexity: Medium
-- [ ] **Ideas API Hooks** - Priority: High | Complexity: Medium
+- [x] **IdeaCard Component** - Priority: High | Complexity: Small
+- [x] **IdeaForm Component** - Priority: High | Complexity: Medium
+- [x] **IdeaList Component** - Priority: High | Complexity: Small
+- [x] **SimilarIdeas Component** - Priority: Medium | Complexity: Medium
+- [x] **Ideas API Hooks** - Priority: High | Complexity: Medium
 
 ### News Dashboard Feature
-- [ ] **News Page** - Priority: Medium | Complexity: Medium
+- [x] **News Page** - Priority: Medium | Complexity: Medium
   - apps/frontend/src/app/news/page.tsx
-- [ ] **NewsCard Component** - Priority: Medium | Complexity: Small
-- [ ] **NewsList Component** - Priority: Medium | Complexity: Small
-- [ ] **News API Hooks** - Priority: Medium | Complexity: Small
+- [x] **NewsCard Component** - Priority: Medium | Complexity: Small
+- [x] **NewsList Component** - Priority: Medium | Complexity: Small
+- [x] **News API Hooks** - Priority: Medium | Complexity: Small
 
 ### Playground Feature
-- [ ] **Playground Page** - Priority: Low | Complexity: Medium
+- [x] **Playground Page** - Priority: Low | Complexity: Medium
   - apps/frontend/src/app/playground/page.tsx
-- [ ] **Settings Panel** - Priority: Medium | Complexity: Medium
-- [ ] **Model Selector** - Priority: Low | Complexity: Small
+- [x] **Settings Panel** - Priority: Medium | Complexity: Medium
+- [x] **Model Selector** - Priority: Low | Complexity: Small
 
 ### Document Upload Feature
-- [ ] **Upload Component** - Priority: High | Complexity: Medium
-- [ ] **File Preview Component** - Priority: Medium | Complexity: Medium
-- [ ] **Upload Progress Component** - Priority: Medium | Complexity: Small
-- [ ] **Document List Component** - Priority: High | Complexity: Medium
+- [x] **Upload Component** - Priority: High | Complexity: Medium
+- [x] **File Preview Component** - Priority: Medium | Complexity: Medium
+- [x] **Upload Progress Component** - Priority: Medium | Complexity: Small
+- [x] **Document List Component** - Priority: High | Complexity: Medium
+- [x] **Documents Page** - Priority: High | Complexity: Medium
+  - apps/frontend/src/app/documents/page.tsx
 
 ### Internationalization
-- [ ] **next-intl Setup** - Priority: Medium | Complexity: Medium
-- [ ] **German Translations** - Priority: Medium | Complexity: Small
-- [ ] **English Translations** - Priority: Medium | Complexity: Small
-- [ ] **Language Detection** - Priority: Low | Complexity: Small
+- [x] **next-intl Setup** - Priority: Medium | Complexity: Medium
+  - src/i18n/request.ts
+  - src/middleware.ts
+  - next.config.ts updated with next-intl plugin
+- [x] **German Translations** - Priority: Medium | Complexity: Small
+  - src/i18n/messages/de.json
+- [x] **English Translations** - Priority: Medium | Complexity: Small
+  - src/i18n/messages/en.json
+- [x] **Language Detection** - Priority: Low | Complexity: Small
 
 ### Hooks
-- [ ] **useChat Hook Enhancement** - Priority: High | Complexity: Medium
+- [x] **useChat Hook Enhancement** - Priority: High | Complexity: Medium
   - Streaming Support
   - Error Retry Logic
-- [ ] **useIdeas Hook** - Priority: High | Complexity: Medium
-- [ ] **useNews Hook** - Priority: Medium | Complexity: Small
-- [ ] **useDocuments Hook** - Priority: High | Complexity: Medium
-- [ ] **useAuth Hook** - Priority: Critical | Complexity: Medium
+  - hooks/use-chat.ts
+- [x] **useIdeas Hook** - Priority: High | Complexity: Medium
+  - hooks/use-ideas.ts
+- [x] **useNews Hook** - Priority: Medium | Complexity: Small
+  - hooks/use-news.ts
+- [x] **useDocuments Hook** - Priority: High | Complexity: Medium
+  - hooks/use-documents.ts
+- [x] **useAuth Hook** - Priority: Critical | Complexity: Medium
+  - hooks/use-auth.ts
 
 ---
 

@@ -2,20 +2,29 @@
 
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Bot } from 'lucide-react';
+import { User, Bot, Loader2 } from 'lucide-react';
+import { ChatCitations } from './chat-citations';
+import { ChatDataPoints } from './chat-data-points';
+import { ChatFollowUpQuestions } from './chat-follow-up-questions';
 
 interface ChatMessageProps {
   message: {
     id: string;
     role: 'user' | 'assistant' | 'system';
     content: string;
+    timestamp?: string;
+    citations?: any[];
+    dataPoints?: any[];
+    followUpQuestions?: string[];
     context?: {
       followup_questions?: string[];
     };
   };
+  isStreaming?: boolean;
+  onFollowUpClick?: (question: string) => void;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, isStreaming, onFollowUpClick }: ChatMessageProps) {
   const isUser = message.role === 'user';
 
   return (
@@ -45,26 +54,36 @@ export function ChatMessage({ message }: ChatMessageProps) {
             : 'bg-muted text-foreground'
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
-
-        {message.context?.followup_questions &&
-          message.context.followup_questions.length > 0 && (
-            <div className="mt-3 border-t border-border/50 pt-3">
-              <p className="text-xs font-headline uppercase tracking-wide mb-2">
-                Folgefragen
-              </p>
-              <ul className="space-y-1">
-                {message.context.followup_questions.map((q, i) => (
-                  <li
-                    key={i}
-                    className="text-sm hover:underline cursor-pointer"
-                  >
-                    {q}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <div className="flex items-start gap-2">
+          <p className="whitespace-pre-wrap flex-1">{message.content}</p>
+          {isStreaming && !isUser && (
+            <Loader2 className="h-4 w-4 animate-spin text-keiko-primary" />
           )}
+        </div>
+
+        {/* Citations */}
+        {message.citations && message.citations.length > 0 && (
+          <div className="mt-3">
+            <ChatCitations citations={message.citations} />
+          </div>
+        )}
+
+        {/* Data Points */}
+        {message.dataPoints && message.dataPoints.length > 0 && (
+          <div className="mt-3">
+            <ChatDataPoints dataPoints={message.dataPoints} />
+          </div>
+        )}
+
+        {/* Follow-up Questions */}
+        {(message.followUpQuestions || message.context?.followup_questions) && (
+          <div className="mt-3">
+            <ChatFollowUpQuestions
+              questions={message.followUpQuestions || message.context?.followup_questions || []}
+              onQuestionClick={onFollowUpClick}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

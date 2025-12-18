@@ -1,0 +1,99 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "navigation": {
+    "home": "Home",
+    "chat": "Chat",
+    "ideas": "Ideas Hub",
+    "news": "News",
+    "documents": "Documents",
+    "playground": "Playground",
+    "settings": "Settings"
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "clear": "Clear Chat",
+    "history": "Chat History",
+    "newChat": "New Chat",
+    "streaming": "Streaming response...",
+    "citations": "Sources",
+    "dataPoints": "Key Data Points",
+    "followUp": "Follow-up Questions"
+  },
+  "ideas": {
+    "title": "Ideas Hub",
+    "subtitle": "Share and discover innovative ideas",
+    "newIdea": "New Idea",
+    "submitIdea": "Submit Idea",
+    "ideaTitle": "Title",
+    "ideaDescription": "Description",
+    "category": "Category",
+    "tags": "Tags",
+    "status": "Status",
+    "upvote": "Upvote",
+    "downvote": "Downvote",
+    "comments": "Comments",
+    "similarIdeas": "Similar Ideas"
+  },
+  "news": {
+    "title": "News Dashboard",
+    "subtitle": "Stay updated with latest news",
+    "all": "All News",
+    "unread": "Unread",
+    "favorites": "Favorites",
+    "markAsRead": "Mark as Read",
+    "toggleFavorite": "Toggle Favorite",
+    "readMore": "Read More"
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Upload and manage your documents",
+    "upload": "Upload",
+    "library": "Library",
+    "uploadFiles": "Upload Files",
+    "dragDrop": "Drag and drop files here, or click to browse",
+    "browseFiles": "Browse Files",
+    "selectedFiles": "Selected Files",
+    "download": "Download",
+    "view": "View"
+  },
+  "playground": {
+    "title": "AI Playground",
+    "subtitle": "Experiment with AI models",
+    "settings": "Settings",
+    "model": "Model",
+    "temperature": "Temperature",
+    "maxTokens": "Max Tokens",
+    "topP": "Top P",
+    "prompt": "Prompt",
+    "response": "Response",
+    "run": "Run",
+    "generating": "Generating..."
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  }
+}
+

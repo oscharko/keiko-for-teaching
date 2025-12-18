@@ -5,21 +5,32 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage } from './chat-message';
 import { Loader2 } from 'lucide-react';
 
-interface ChatMessage {
+interface ChatMessageType {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  timestamp?: string;
+  citations?: any[];
+  dataPoints?: any[];
+  followUpQuestions?: string[];
   context?: {
     followup_questions?: string[];
   };
 }
 
 interface ChatMessagesProps {
-  messages: ChatMessage[];
+  messages: ChatMessageType[];
   isLoading: boolean;
+  streamingMessageId?: string | null;
+  onFollowUpClick?: (question: string) => void;
 }
 
-export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
+export function ChatMessages({
+  messages,
+  isLoading,
+  streamingMessageId,
+  onFollowUpClick,
+}: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,9 +63,14 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
     <ScrollArea className="flex-1" ref={scrollRef}>
       <div className="space-y-4 p-4">
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
+          <ChatMessage
+            key={message.id}
+            message={message}
+            isStreaming={streamingMessageId === message.id}
+            onFollowUpClick={onFollowUpClick}
+          />
         ))}
-        {isLoading && (
+        {isLoading && !streamingMessageId && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="font-body text-sm">Keiko denkt nach...</span>

@@ -1,0 +1,99 @@
+{
+  "common": {
+    "loading": "Lädt...",
+    "error": "Ein Fehler ist aufgetreten",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "submit": "Absenden",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "chat": "Chat",
+    "ideas": "Ideen Hub",
+    "news": "Nachrichten",
+    "documents": "Dokumente",
+    "playground": "Spielplatz",
+    "settings": "Einstellungen"
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Geben Sie Ihre Nachricht ein...",
+    "send": "Senden",
+    "clear": "Chat löschen",
+    "history": "Chat-Verlauf",
+    "newChat": "Neuer Chat",
+    "streaming": "Antwort wird gestreamt...",
+    "citations": "Quellen",
+    "dataPoints": "Wichtige Datenpunkte",
+    "followUp": "Folgefragen"
+  },
+  "ideas": {
+    "title": "Ideen Hub",
+    "subtitle": "Teilen und entdecken Sie innovative Ideen",
+    "newIdea": "Neue Idee",
+    "submitIdea": "Idee einreichen",
+    "ideaTitle": "Titel",
+    "ideaDescription": "Beschreibung",
+    "category": "Kategorie",
+    "tags": "Tags",
+    "status": "Status",
+    "upvote": "Upvote",
+    "downvote": "Downvote",
+    "comments": "Kommentare",
+    "similarIdeas": "Ähnliche Ideen"
+  },
+  "news": {
+    "title": "Nachrichten Dashboard",
+    "subtitle": "Bleiben Sie auf dem Laufenden",
+    "all": "Alle Nachrichten",
+    "unread": "Ungelesen",
+    "favorites": "Favoriten",
+    "markAsRead": "Als gelesen markieren",
+    "toggleFavorite": "Favorit umschalten",
+    "readMore": "Mehr lesen"
+  },
+  "documents": {
+    "title": "Dokumente",
+    "subtitle": "Laden Sie Ihre Dokumente hoch und verwalten Sie sie",
+    "upload": "Hochladen",
+    "library": "Bibliothek",
+    "uploadFiles": "Dateien hochladen",
+    "dragDrop": "Dateien hier ablegen oder klicken zum Durchsuchen",
+    "browseFiles": "Dateien durchsuchen",
+    "selectedFiles": "Ausgewählte Dateien",
+    "download": "Herunterladen",
+    "view": "Ansehen"
+  },
+  "playground": {
+    "title": "KI Spielplatz",
+    "subtitle": "Experimentieren Sie mit KI-Modellen",
+    "settings": "Einstellungen",
+    "model": "Modell",
+    "temperature": "Temperatur",
+    "maxTokens": "Max. Tokens",
+    "topP": "Top P",
+    "prompt": "Eingabe",
+    "response": "Antwort",
+    "run": "Ausführen",
+    "generating": "Generiert..."
+  },
+  "auth": {
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "register": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "name": "Name",
+    "forgotPassword": "Passwort vergessen?",
+    "noAccount": "Noch kein Konto?",
+    "hasAccount": "Bereits ein Konto?"
+  }
+}
+
