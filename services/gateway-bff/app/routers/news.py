@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -63,8 +63,6 @@ async def get_news_article(article_id: str, request: Request) -> NewsArticle:
     Raises:
         HTTPException: If article not found
     """
-    from fastapi import HTTPException
-
     # Placeholder implementation
     raise HTTPException(status_code=404, detail="Article not found")
 

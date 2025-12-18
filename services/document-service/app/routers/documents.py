@@ -60,16 +60,17 @@ def _validate_file(file: UploadFile) -> None:
     if file.filename:
         extension = file.filename.split(".")[-1].lower()
         if extension not in settings.allowed_extensions:
+            allowed = ", ".join(settings.allowed_extensions)
             raise HTTPException(
                 status_code=400,
-                detail=f"File type not allowed. Allowed types: {', '.join(settings.allowed_extensions)}",
+                detail=f"File type not allowed. Allowed types: {allowed}",
             )
 
 
 @router.post("/documents/upload", response_model=UploadResponse)
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
-    request: Request = None,
 ) -> UploadResponse:
     """Upload a document to blob storage.
     

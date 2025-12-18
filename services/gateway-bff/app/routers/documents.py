@@ -16,7 +16,8 @@ router = APIRouter(tags=["documents"])
 
 @router.post("/documents/upload")
 async def upload_document(
-    file: UploadFile = File(...), request: Request = None  # noqa: B008
+    request: Request,
+    file: UploadFile = File(...),
 ) -> dict[str, Any]:
     """Proxy document upload to document service.
 

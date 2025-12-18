@@ -245,8 +245,15 @@ class ChatService:
 
         chat_messages.extend(messages)
 
-        # Stream response
-        stream = await self._client.chat.completions.create(
+        # Stream response using appropriate client
+        if self._foundry_client:
+            # Foundry streaming not yet implemented - fall back to non-streaming
+            logger.warning("Streaming not yet supported with Foundry, using legacy")
+
+        if not self._legacy_client:
+            raise RuntimeError("No AI client available for streaming")
+
+        stream = await self._legacy_client.chat.completions.create(
             model=self._settings.azure_openai_deployment,
             messages=chat_messages,  # type: ignore[arg-type]
             temperature=temperature or self._settings.default_temperature,
@@ -321,17 +328,33 @@ class ChatService:
         Returns:
             list: Follow-up questions
         """
-        prompt = f"""Basierend auf dieser Konversation, generiere 3 kurze Folgefragen.
-Antwort: {response}
-Gib nur die Fragen zurueck, eine pro Zeile, ohne Nummerierung."""
-
-        followup_response = await self._client.chat.completions.create(
-            model=self._settings.azure_openai_deployment,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=200,
+        prompt = (
+            "Based on this conversation, generate 3 short follow-up questions.\n"
+            f"Response: {response}\n"
+            "Return only the questions, one per line, without numbering."
         )
 
-        content = followup_response.choices[0].message.content or ""
+        followup_messages = [{"role": "user", "content": prompt}]
+
+        # Use Foundry client if available, otherwise legacy client
+        if self._foundry_client:
+            followup_response = await self._foundry_client.chat_completion(
+                messages=followup_messages,
+                temperature=0.7,
+                max_tokens=200,
+            )
+            content = followup_response.choices[0].message.content or ""
+        elif self._legacy_client:
+            followup_response = await self._legacy_client.chat.completions.create(
+                model=self._settings.azure_openai_deployment,
+                messages=followup_messages,  # type: ignore[arg-type]
+                temperature=0.7,
+                max_tokens=200,
+            )
+            content = followup_response.choices[0].message.content or ""
+        else:
+            logger.warning("No AI client available for follow-up questions")
+            return []
+
         return [q.strip() for q in content.strip().split("\n") if q.strip()][:3]
 

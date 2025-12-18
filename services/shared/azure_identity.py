@@ -5,7 +5,6 @@ environments (local development, Azure Kubernetes Service, etc.).
 """
 
 import os
-from typing import Union
 
 from azure.identity import (
     AzureCliCredential,

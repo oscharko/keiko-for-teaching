@@ -5,7 +5,7 @@ This module provides a unified Redis caching interface for all services.
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import redis.asyncio as redis
 from redis.asyncio import Redis
@@ -33,7 +33,7 @@ class CacheClient:
         self.redis_url = redis_url
         self.default_ttl = default_ttl
         self.key_prefix = key_prefix
-        self._client: Optional[Redis] = None
+        self._client: Redis | None = None
 
     async def connect(self) -> None:
         """Establish connection to Redis."""
@@ -66,7 +66,7 @@ class CacheClient:
         """
         return f"{self.key_prefix}:{key}"
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get a value from cache.
 
         Args:
@@ -92,7 +92,7 @@ class CacheClient:
             return None
 
     async def set(
-        self, key: str, value: Any, ttl: Optional[int] = None
+        self, key: str, value: Any, ttl: int | None = None
     ) -> bool:
         """Set a value in cache with TTL.
 
@@ -162,7 +162,7 @@ class CacheClient:
             logger.error(f"Error checking existence of key {key}: {e}")
             return False
 
-    async def get_ttl(self, key: str) -> Optional[int]:
+    async def get_ttl(self, key: str) -> int | None:
         """Get the remaining TTL for a key.
 
         Args:
@@ -210,7 +210,7 @@ class CacheClient:
 
 
 # Singleton instance
-_cache_client: Optional[CacheClient] = None
+_cache_client: CacheClient | None = None
 
 
 def get_cache_client(

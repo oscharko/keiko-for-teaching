@@ -1,0 +1,7 @@
+BETA_AUTH_USERS="{\"demo_01@x1f.one\":\"DemoKeiko1001\",\"demo_02@x1f.one\":\"DemoKeiko2002\",\"demo_03@x1f.one\":\"DemoKeiko3003\",\"demo_04@x1f.one\":\"DemoKeiko4004\",\"admin@x1f.one\":\"oscharko\"}"
+
+demo_01@x1f.one | DemoKeiko1001
+demo_02@x1f.one | DemoKeiko2002
+demo_03@x1f.one | DemoKeiko3003
+demo_04@x1f.one | DemoKeiko4004
+admin@x1f.one | oscharko

@@ -1,9 +1,9 @@
 """Auth service main application module."""
 
 import sys
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 

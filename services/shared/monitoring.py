@@ -2,8 +2,9 @@
 
 import logging
 import time
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 from opencensus.ext.azure.trace_exporter import AzureExporter
@@ -44,7 +45,7 @@ class MonitoringConfig:
     def __init__(
         self,
         service_name: str,
-        app_insights_connection_string: Optional[str] = None,
+        app_insights_connection_string: str | None = None,
         enable_prometheus: bool = True,
         enable_app_insights: bool = True,
         log_level: str = "INFO",

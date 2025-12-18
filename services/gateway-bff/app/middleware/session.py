@@ -4,6 +4,7 @@ import sys
 import uuid
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -101,7 +102,7 @@ async def get_session(request: Request) -> dict:
     return getattr(request.state, "session", {})
 
 
-async def set_session(request: Request, key: str, value: any) -> None:
+async def set_session(request: Request, key: str, value: Any) -> None:
     """Set a value in the session.
 
     Args:
