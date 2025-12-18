@@ -2,44 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Simplon BP';
-  src: url('/fonts/SimplonBP-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+/* IBM Plex Mono from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
-@font-face {
-  font-family: 'Simplon BP';
-  src: url('/fonts/SimplonBP-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Simplon BP';
-  src: url('/fonts/SimplonBP-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Simplon BP Mono';
-  src: url('/fonts/SimplonBPMono-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Simplon BP Mono';
-  src: url('/fonts/SimplonBPMono-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
+/* Semantic font classes for code, headlines, and data */
+code,
+.headline-mono,
+.data {
+  font-family: 'IBM Plex Mono', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
 @layer base {

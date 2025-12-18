@@ -42,10 +42,32 @@ const config: Config = {
         },
       },
       fontFamily: {
-        mono: ['Simplon BP Mono', 'ui-monospace', 'monospace'],
-        sans: ['Simplon BP', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        headline: ['Simplon BP Mono', 'ui-monospace', 'monospace'],
-        body: ['Simplon BP', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Monospace fonts for code, headlines, and data
+        mono: [
+          'IBM Plex Mono',
+          'Roboto Mono',
+          'Consolas',
+          'Courier New',
+          'monospace',
+        ],
+        // Sans-serif fonts for body text
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Semantic aliases
+        headline: [
+          'IBM Plex Mono',
+          'Roboto Mono',
+          'Consolas',
+          'Courier New',
+          'monospace',
+        ],
+        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        data: [
+          'IBM Plex Mono',
+          'Roboto Mono',
+          'Consolas',
+          'Courier New',
+          'monospace',
+        ],
       },
       borderRadius: {
         lg: 'var(--radius)',
