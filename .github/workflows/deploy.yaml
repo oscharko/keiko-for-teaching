@@ -1,0 +1,72 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'services/**'
+      - 'packages/**'
+      - 'infra/**'
+
+env:
+  ACR_NAME: acrkeikoprod
+  AKS_CLUSTER: aks-keiko-prod
+  RESOURCE_GROUP: rg-keiko-prod
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: frontend
+            context: apps/frontend
+            dockerfile: apps/frontend/Dockerfile
+          - name: gateway-bff
+            context: services/gateway-bff
+            dockerfile: services/gateway-bff/Dockerfile
+          - name: chat-service
+            context: services/chat-service
+            dockerfile: services/chat-service/Dockerfile
+          - name: ingestion-service
+            context: services/ingestion-service
+            dockerfile: services/ingestion-service/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: azure/docker-login@v2
+        with:
+          login-server: ${{ env.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - name: Build and push
+        run: |
+          docker build -t ${{ env.ACR_NAME }}.azurecr.io/keiko/${{ matrix.name }}:${{ github.sha }} \
+            -f ${{ matrix.dockerfile }} ${{ matrix.context }}
+          docker push ${{ env.ACR_NAME }}.azurecr.io/keiko/${{ matrix.name }}:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ env.RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER }}
+      - name: Deploy to AKS
+        run: |
+          cd infra/kubernetes/production
+          kustomize edit set image \
+            keiko/frontend=${{ env.ACR_NAME }}.azurecr.io/keiko/frontend:${{ github.sha }} \
+            keiko/gateway-bff=${{ env.ACR_NAME }}.azurecr.io/keiko/gateway-bff:${{ github.sha }} \
+            keiko/chat-service=${{ env.ACR_NAME }}.azurecr.io/keiko/chat-service:${{ github.sha }} \
+            keiko/ingestion-service=${{ env.ACR_NAME }}.azurecr.io/keiko/ingestion-service:${{ github.sha }}
+          kubectl apply -k .
+

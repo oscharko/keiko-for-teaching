@@ -1,0 +1,56 @@
+[package]
+name = "keiko-ingestion"
+version = "0.1.0"
+edition = "2021"
+authors = ["Keiko Team"]
+description = "Document ingestion service for Keiko"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.42", features = ["full"] }
+
+# Web framework
+axum = { version = "0.8", features = ["macros"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# gRPC
+tonic = "0.12"
+prost = "0.13"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# PDF parsing
+pdf-extract = "0.7"
+lopdf = "0.34"
+
+# Azure SDK
+azure_core = "0.21"
+azure_identity = "0.21"
+
+# Utilities
+uuid = { version = "1.11", features = ["v4", "serde"] }
+thiserror = "2.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+base64 = "0.22"
+tiktoken-rs = "0.6"
+
+# Configuration
+config = "0.14"
+dotenvy = "0.15"
+
+[build-dependencies]
+tonic-build = "0.12"
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.14"
+
+[[bin]]
+name = "keiko-ingestion"
+path = "src/main.rs"
+

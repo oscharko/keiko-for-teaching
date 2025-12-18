@@ -1,0 +1,10 @@
+{
+  "name": "@keiko/proto",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Protobuf compilation handled by service build scripts'",
+    "lint": "buf lint"
+  }
+}
+

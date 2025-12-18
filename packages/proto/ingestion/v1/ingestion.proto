@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package keiko.ingestion.v1;
+
+service IngestionService {
+  rpc ParseDocument(ParseDocumentRequest) returns (ParseDocumentResponse);
+  rpc ParseDocumentStream(ParseDocumentRequest) returns (stream Chunk);
+  rpc GetSupportedFormats(GetSupportedFormatsRequest) returns (GetSupportedFormatsResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message ParseDocumentRequest {
+  bytes content = 1;
+  string filename = 2;
+  string content_type = 3;
+  ParseOptions options = 4;
+}
+
+message ParseOptions {
+  int32 max_tokens_per_chunk = 1;
+  int32 overlap_percent = 2;
+  bool use_document_intelligence = 3;
+  bool extract_images = 4;
+  bool generate_embeddings = 5;
+}
+
+message ParseDocumentResponse {
+  repeated Chunk chunks = 1;
+  DocumentMetadata metadata = 2;
+  ProcessingStats stats = 3;
+}
+
+message Chunk {
+  string id = 1;
+  int32 page_num = 2;
+  string text = 3;
+  int32 token_count = 4;
+  int32 char_count = 5;
+  repeated float embedding = 6;
+  repeated Image images = 7;
+}
+
+message Image {
+  string id = 1;
+  int32 page_num = 2;
+  string data_base64 = 3;
+  string content_type = 4;
+  string description = 5;
+  repeated float embedding = 6;
+}
+
+message DocumentMetadata {
+  string filename = 1;
+  string content_type = 2;
+  int64 size_bytes = 3;
+  int32 page_count = 4;
+  string title = 5;
+  string author = 6;
+  string created_at = 7;
+}
+
+message ProcessingStats {
+  int64 processing_time_ms = 1;
+  int32 total_chunks = 2;
+  int32 total_tokens = 3;
+  int32 total_images = 4;
+  string parser_used = 5;
+}
+
+message GetSupportedFormatsRequest {}
+
+message GetSupportedFormatsResponse {
+  repeated string extensions = 1;
+  repeated string mime_types = 2;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string status = 1;
+  string version = 2;
+  int64 uptime_seconds = 3;
+}
+

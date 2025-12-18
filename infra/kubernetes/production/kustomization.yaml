@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: keiko
+
+resources:
+  - ../base
+
+replicas:
+  - name: frontend
+    count: 3
+  - name: gateway-bff
+    count: 3
+  - name: chat-service
+    count: 3
+  - name: ingestion-service
+    count: 2
+
+images:
+  - name: keiko/frontend
+    newName: acrkeikoprod.azurecr.io/keiko/frontend
+  - name: keiko/gateway-bff
+    newName: acrkeikoprod.azurecr.io/keiko/gateway-bff
+  - name: keiko/chat-service
+    newName: acrkeikoprod.azurecr.io/keiko/chat-service
+  - name: keiko/ingestion-service
+    newName: acrkeikoprod.azurecr.io/keiko/ingestion-service
+
+commonLabels:
+  environment: production
+

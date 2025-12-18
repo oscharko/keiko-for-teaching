@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      gateway: ${{ steps.filter.outputs.gateway }}
+      chat: ${{ steps.filter.outputs.chat }}
+      ingestion: ${{ steps.filter.outputs.ingestion }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'apps/frontend/**'
+              - 'packages/**'
+            gateway:
+              - 'services/gateway-bff/**'
+            chat:
+              - 'services/chat-service/**'
+            ingestion:
+              - 'services/ingestion-service/**'
+              - 'packages/proto/**'
+
+  frontend:
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run lint build --filter=frontend
+
+  gateway:
+    needs: changes
+    if: ${{ needs.changes.outputs.gateway == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - working-directory: services/gateway-bff
+        run: |
+          uv pip install --system -e ".[dev]"
+          ruff check .
+          mypy app
+
+  chat:
+    needs: changes
+    if: ${{ needs.changes.outputs.chat == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - working-directory: services/chat-service
+        run: |
+          uv pip install --system -e ".[dev]"
+          ruff check .
+          mypy app
+
+  ingestion:
+    needs: changes
+    if: ${{ needs.changes.outputs.ingestion == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: services/ingestion-service
+      - run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+      - working-directory: services/ingestion-service
+        run: |
+          cargo fmt --check
+          cargo clippy -- -D warnings
+          cargo build --release
+
