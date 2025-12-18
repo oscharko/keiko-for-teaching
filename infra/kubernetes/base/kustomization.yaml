@@ -25,6 +25,22 @@ resources:
   - auth-deployment.yaml
   - user-deployment.yaml
 
+  # Monitoring & Logging
+  - monitoring/prometheus-deployment.yaml
+  - monitoring/grafana-deployment.yaml
+  - monitoring/loki-deployment.yaml
+  - monitoring/promtail-config.yaml
+  - monitoring/opentelemetry-deployment.yaml
+
+  # Secrets Management
+  - secrets/csi-secrets-store.yaml
+  - secrets/external-secrets-operator.yaml
+
+  # Service Mesh (optional - requires Istio installation)
+  # - service-mesh/istio-installation.yaml
+  # - service-mesh/mtls-config.yaml
+  # - service-mesh/traffic-management.yaml
+
 commonLabels:
   app.kubernetes.io/part-of: keiko
 

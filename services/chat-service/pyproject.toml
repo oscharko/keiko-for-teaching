@@ -7,6 +7,10 @@ dependencies = [
     "fastapi>=0.115.6",
     "uvicorn[standard]>=0.34.0",
     "httpx>=0.28.1",
+    # Microsoft Foundry SDK
+    "azure-ai-projects>=1.0.0b1",
+    "azure-ai-inference>=1.0.0b5",
+    # Legacy OpenAI SDK (for backward compatibility during migration)
     "openai>=1.58.1",
     "azure-identity>=1.19.0",
     "redis>=5.2.1",

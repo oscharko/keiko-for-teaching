@@ -79,10 +79,14 @@ async def chat(
 
     Supports both standard and streaming responses, with optional RAG.
     """
-    openai_client = request.app.state.openai_client
+    legacy_client = request.app.state.openai_client  # May be None if using Foundry
     cache_client = request.app.state.cache_client
     http_client = request.app.state.http_client
-    chat_service = ChatService(openai_client, settings, http_client)
+    chat_service = ChatService(
+        settings=settings,
+        http_client=http_client,
+        legacy_client=legacy_client,
+    )
 
     overrides = chat_request.context.overrides if chat_request.context else None
     messages = [{"role": m.role, "content": m.content} for m in chat_request.messages]

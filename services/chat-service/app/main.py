@@ -23,27 +23,32 @@ from .routers import chat, health
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application lifespan - startup and shutdown."""
-    # Use Managed Identity if no API key is provided
-    if settings.azure_openai_api_key:
-        # Local development with API key
-        app.state.openai_client = AsyncAzureOpenAI(
-            azure_endpoint=settings.azure_openai_endpoint,
-            api_key=settings.azure_openai_api_key,
-            api_version=settings.azure_openai_api_version,
-        )
+    # Initialize legacy Azure OpenAI client if needed (for backward compatibility)
+    if settings.use_legacy_openai:
+        if settings.azure_openai_api_key:
+            # Local development with API key
+            app.state.openai_client = AsyncAzureOpenAI(
+                azure_endpoint=settings.azure_openai_endpoint,
+                api_key=settings.azure_openai_api_key,
+                api_version=settings.azure_openai_api_version,
+            )
+        else:
+            # Production with Managed Identity
+            credential = get_azure_credential(
+                managed_identity_client_id=settings.azure_client_id
+            )
+            token_provider = get_bearer_token_provider(
+                credential, "https://cognitiveservices.azure.com/.default"
+            )
+            app.state.openai_client = AsyncAzureOpenAI(
+                azure_endpoint=settings.azure_openai_endpoint,
+                azure_ad_token_provider=token_provider,
+                api_version=settings.azure_openai_api_version,
+            )
     else:
-        # Production with Managed Identity
-        credential = get_azure_credential(
-            managed_identity_client_id=settings.azure_client_id
-        )
-        token_provider = get_bearer_token_provider(
-            credential, "https://cognitiveservices.azure.com/.default"
-        )
-        app.state.openai_client = AsyncAzureOpenAI(
-            azure_endpoint=settings.azure_openai_endpoint,
-            azure_ad_token_provider=token_provider,
-            api_version=settings.azure_openai_api_version,
-        )
+        # Microsoft Foundry is the default (no separate client initialization needed)
+        # The FoundryClient is initialized in ChatService
+        app.state.openai_client = None
 
     # Initialize cache client
     app.state.cache_client = get_cache_client(
@@ -59,7 +64,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Cleanup
-    await app.state.openai_client.close()
+    if app.state.openai_client:
+        await app.state.openai_client.close()
     await app.state.cache_client.disconnect()
     await app.state.http_client.aclose()
 

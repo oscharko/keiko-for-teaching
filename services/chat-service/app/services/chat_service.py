@@ -1,4 +1,4 @@
-"""Chat service for processing messages with Azure OpenAI."""
+"""Chat service for processing messages with Microsoft Foundry."""
 
 import logging
 from typing import Any, AsyncGenerator
@@ -7,6 +7,7 @@ import httpx
 from openai import AsyncAzureOpenAI
 
 from ..config import Settings
+from .foundry_client import FoundryClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,24 +21,39 @@ Gib immer die Quellen an, die du verwendet hast."""
 
 
 class ChatService:
-    """Service for handling chat interactions with Azure OpenAI."""
+    """Service for handling chat interactions with Microsoft Foundry.
+
+    Supports:
+    - Multi-model inference (GPT-4o, Claude Sonnet 4.5, DeepSeek-V3)
+    - Foundry IQ for agentic RAG (RAG 2.0)
+    - Model Router for automatic model selection
+    - Legacy Azure OpenAI for backward compatibility
+    """
 
     def __init__(
         self,
-        client: AsyncAzureOpenAI,
         settings: Settings,
         http_client: httpx.AsyncClient | None = None,
+        legacy_client: AsyncAzureOpenAI | None = None,
     ) -> None:
         """Initialize the chat service.
 
         Args:
-            client: Azure OpenAI client
             settings: Application settings
             http_client: HTTP client for calling other services
+            legacy_client: Legacy Azure OpenAI client (for backward compatibility)
         """
-        self._client = client
         self._settings = settings
         self._http_client = http_client
+        self._legacy_client = legacy_client
+
+        # Initialize Foundry client if not using legacy mode
+        if not settings.use_legacy_openai:
+            self._foundry_client = FoundryClient(settings)
+            logger.info("Chat service initialized with Microsoft Foundry")
+        else:
+            self._foundry_client = None
+            logger.info("Chat service initialized with legacy Azure OpenAI")
 
     async def chat(
         self,
@@ -63,39 +79,83 @@ class ChatService:
         citations = []
 
         # Prepare chat messages
-        if use_rag and self._http_client:
-            # Use RAG: retrieve relevant documents first
-            thoughts.append({"title": "Searching knowledge base", "description": ""})
-
-            # Get the last user message as search query
-            user_query = next(
-                (m["content"] for m in reversed(messages) if m["role"] == "user"),
-                "",
-            )
-
-            # Call search service
-            search_results = await self._search_documents(user_query, top_k)
-
-            if search_results:
+        if use_rag:
+            # Use Foundry IQ for agentic RAG (RAG 2.0) if enabled
+            if self._foundry_client and self._settings.enable_foundry_iq:
                 thoughts.append({
-                    "title": "Retrieved documents",
-                    "description": f"Found {len(search_results)} relevant documents",
+                    "title": "Using Foundry IQ",
+                    "description": "Agentic RAG with multi-source synthesis",
                 })
 
-                # Build context from search results
-                context = self._build_rag_context(search_results)
-                citations = [doc.get("id", "") for doc in search_results]
+                # Get the last user message as search query
+                user_query = next(
+                    (m["content"] for m in reversed(messages) if m["role"] == "user"),
+                    "",
+                )
 
-                # Use RAG system prompt with context
-                chat_messages = [
-                    {"role": "system", "content": RAG_SYSTEM_PROMPT},
-                    {"role": "system", "content": f"Kontext:\n{context}"},
-                ]
+                # Use Foundry IQ for intelligent knowledge grounding
+                iq_result = await self._foundry_client.foundry_iq_search(
+                    query=user_query,
+                    knowledge_base="keiko-documents",
+                    retrieval_effort=self._settings.foundry_iq_retrieval_effort,
+                )
+
+                content = iq_result["answer"]
+                citations = iq_result["citations"]
+                thoughts.append({
+                    "title": "Foundry IQ completed",
+                    "description": f"Retrieved {len(citations)} sources with agentic reasoning",
+                })
+
+                # Return Foundry IQ result
+                result: dict[str, Any] = {
+                    "content": content,
+                    "thoughts": thoughts,
+                    "citations": citations,
+                }
+
+                if suggest_followup:
+                    result["followup_questions"] = await self._generate_followup_questions(
+                        messages, content
+                    )
+
+                return result
+
+            # Fallback to traditional RAG if Foundry IQ not enabled
+            elif self._http_client:
+                thoughts.append({"title": "Searching knowledge base", "description": ""})
+
+                # Get the last user message as search query
+                user_query = next(
+                    (m["content"] for m in reversed(messages) if m["role"] == "user"),
+                    "",
+                )
+
+                # Call search service
+                search_results = await self._search_documents(user_query, top_k)
+
+                if search_results:
+                    thoughts.append({
+                        "title": "Retrieved documents",
+                        "description": f"Found {len(search_results)} relevant documents",
+                    })
+
+                    # Build context from search results
+                    context = self._build_rag_context(search_results)
+                    citations = [doc.get("id", "") for doc in search_results]
+
+                    # Use RAG system prompt with context
+                    chat_messages = [
+                        {"role": "system", "content": RAG_SYSTEM_PROMPT},
+                        {"role": "system", "content": f"Kontext:\n{context}"},
+                    ]
+                else:
+                    thoughts.append({
+                        "title": "No documents found",
+                        "description": "Falling back to general knowledge",
+                    })
+                    chat_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
             else:
-                thoughts.append({
-                    "title": "No documents found",
-                    "description": "Falling back to general knowledge",
-                })
                 chat_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         else:
             # Standard chat without RAG
@@ -103,15 +163,25 @@ class ChatService:
 
         chat_messages.extend(messages)
 
-        # Generate response
-        response = await self._client.chat.completions.create(
-            model=self._settings.azure_openai_deployment,
-            messages=chat_messages,  # type: ignore[arg-type]
-            temperature=temperature or self._settings.default_temperature,
-            max_tokens=self._settings.default_max_tokens,
-        )
-
-        content = response.choices[0].message.content or ""
+        # Generate response using Foundry or legacy OpenAI
+        if self._foundry_client:
+            # Use Microsoft Foundry
+            response = await self._foundry_client.chat_completion(
+                messages=chat_messages,
+                temperature=temperature,
+                max_tokens=self._settings.default_max_tokens,
+                use_model_router=self._settings.enable_model_router,
+            )
+            content = response.choices[0].message.content or ""
+        else:
+            # Use legacy Azure OpenAI
+            response = await self._legacy_client.chat.completions.create(
+                model=self._settings.azure_openai_deployment,
+                messages=chat_messages,  # type: ignore[arg-type]
+                temperature=temperature or self._settings.default_temperature,
+                max_tokens=self._settings.default_max_tokens,
+            )
+            content = response.choices[0].message.content or ""
         result: dict[str, Any] = {
             "content": content,
             "thoughts": thoughts,

@@ -1,8 +1,8 @@
 @description('Principal ID to assign roles to')
 param principalId string
 
-@description('Azure OpenAI Resource ID')
-param openaiId string
+@description('Microsoft Foundry AI Project Resource ID')
+param foundryProjectId string
 
 @description('Azure AI Search Resource ID')
 param searchId string
@@ -14,17 +14,29 @@ param acrId string
 param redisId string
 
 // Built-in Azure Role Definition IDs
-var cognitiveServicesOpenAIUserRole = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+var azureMLDataScientistRole = 'f6c7c914-8db3-469d-8ca1-694a8f32e121' // Azure ML Data Scientist (for Foundry)
+var cognitiveServicesUserRole = 'a97b65f3-24c7-4388-baec-2e87135dc908' // Cognitive Services User (for AI Services)
 var searchIndexDataContributorRole = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
 var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 var redisContributorRole = 'e0f68234-74aa-48ed-b826-c38b57376e17'
 
-// Assign Cognitive Services OpenAI User role for Azure OpenAI
-resource openaiRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(openaiId, principalId, cognitiveServicesOpenAIUserRole)
-  scope: resourceId('Microsoft.CognitiveServices/accounts', split(openaiId, '/')[8])
+// Assign Azure ML Data Scientist role for Foundry AI Project
+resource foundryRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundryProjectId, principalId, azureMLDataScientistRole)
+  scope: resourceId('Microsoft.MachineLearningServices/workspaces', split(foundryProjectId, '/')[8])
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesOpenAIUserRole)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', azureMLDataScientistRole)
+    principalId: principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Assign Cognitive Services User role for AI Services (Foundry models)
+resource aiServicesRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundryProjectId, principalId, cognitiveServicesUserRole)
+  scope: resourceId('Microsoft.MachineLearningServices/workspaces', split(foundryProjectId, '/')[8])
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesUserRole)
     principalId: principalId
     principalType: 'ServicePrincipal'
   }
@@ -63,7 +75,8 @@ resource redisRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01
   }
 }
 
-output openaiRoleAssignmentId string = openaiRoleAssignment.id
+output foundryRoleAssignmentId string = foundryRoleAssignment.id
+output aiServicesRoleAssignmentId string = aiServicesRoleAssignment.id
 output searchRoleAssignmentId string = searchRoleAssignment.id
 output acrRoleAssignmentId string = acrRoleAssignment.id
 output redisRoleAssignmentId string = redisRoleAssignment.id

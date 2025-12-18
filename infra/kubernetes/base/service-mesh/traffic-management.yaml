@@ -1,0 +1,412 @@
+---
+# Traffic Management Configuration for Istio Service Mesh
+# This includes VirtualServices, DestinationRules, and Gateways
+
+# Gateway - Main ingress gateway
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: keiko-gateway
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "keiko.example.com"
+        - "*.keiko.example.com"
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - "keiko.example.com"
+        - "*.keiko.example.com"
+      tls:
+        mode: SIMPLE
+        credentialName: keiko-tls-cert
+
+---
+# VirtualService - Frontend routing
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: frontend
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  hosts:
+    - "keiko.example.com"
+  gateways:
+    - keiko-gateway
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: frontend
+            port:
+              number: 3000
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure,refused-stream
+      timeout: 30s
+      corsPolicy:
+        allowOrigins:
+          - exact: "https://keiko.example.com"
+        allowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        allowHeaders:
+          - authorization
+          - content-type
+          - x-request-id
+        maxAge: 24h
+
+---
+# VirtualService - Gateway BFF routing
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: gateway-bff
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  hosts:
+    - "api.keiko.example.com"
+  gateways:
+    - keiko-gateway
+  http:
+    - match:
+        - uri:
+            prefix: "/api/v1/chat"
+      route:
+        - destination:
+            host: gateway-bff
+            port:
+              number: 8000
+            subset: v1
+          weight: 90
+        - destination:
+            host: gateway-bff
+            port:
+              number: 8000
+            subset: v2
+          weight: 10
+      retries:
+        attempts: 3
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure,refused-stream
+      timeout: 60s
+      fault:
+        delay:
+          percentage:
+            value: 0.1
+          fixedDelay: 5s
+    - match:
+        - uri:
+            prefix: "/api/v1"
+      route:
+        - destination:
+            host: gateway-bff
+            port:
+              number: 8000
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure,refused-stream
+      timeout: 30s
+
+---
+# DestinationRule - Gateway BFF subsets for canary deployment
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: gateway-bff
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  host: gateway-bff
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    loadBalancer:
+      simple: LEAST_REQUEST
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+
+---
+# VirtualService - Chat Service internal routing
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: chat-service
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  hosts:
+    - chat-service
+  http:
+    - match:
+        - uri:
+            prefix: "/api/v1/chat"
+      route:
+        - destination:
+            host: chat-service
+            port:
+              number: 8001
+          weight: 100
+      retries:
+        attempts: 2
+        perTryTimeout: 10s
+        retryOn: 5xx,reset,connect-failure
+      timeout: 60s
+
+---
+# VirtualService - Search Service internal routing
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: search-service
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  hosts:
+    - search-service
+  http:
+    - match:
+        - uri:
+            prefix: "/api/v1/search"
+      route:
+        - destination:
+            host: search-service
+            port:
+              number: 8002
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure
+      timeout: 30s
+
+---
+# VirtualService - Document Service internal routing
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: document-service
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  hosts:
+    - document-service
+  http:
+    - match:
+        - uri:
+            prefix: "/api/v1/documents"
+      route:
+        - destination:
+            host: document-service
+            port:
+              number: 8003
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+        retryOn: 5xx,reset,connect-failure
+      timeout: 120s
+
+---
+# DestinationRule - Chat Service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: chat-service
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  host: chat-service
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 1
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 30
+
+---
+# DestinationRule - Search Service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: search-service
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  host: search-service
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    loadBalancer:
+      simple: LEAST_REQUEST
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+
+---
+# DestinationRule - Document Service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: document-service
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  host: document-service
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 2
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+
+---
+# ServiceEntry - Azure OpenAI external service
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: azure-openai
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  hosts:
+    - "*.openai.azure.com"
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+---
+# ServiceEntry - Azure AI Search external service
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: azure-search
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  hosts:
+    - "*.search.windows.net"
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+---
+# ServiceEntry - Azure Storage external service
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: azure-storage
+  namespace: keiko-teaching
+  labels:
+    app.kubernetes.io/name: istio
+    app.kubernetes.io/component: networking
+spec:
+  hosts:
+    - "*.blob.core.windows.net"
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS
+

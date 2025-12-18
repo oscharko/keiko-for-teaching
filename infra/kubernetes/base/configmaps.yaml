@@ -39,21 +39,30 @@ metadata:
   labels:
     app: chat-service
 data:
-  # Azure OpenAI
+  # Microsoft Foundry Configuration
+  FOUNDRY_PROJECT_NAME: "aiproj-keiko-prod"
+  FOUNDRY_DEFAULT_MODEL: "gpt-4o"
+  AZURE_RESOURCE_GROUP: "rg-keiko-prod"
+  ENABLE_FOUNDRY_IQ: "true"
+  ENABLE_MODEL_ROUTER: "false"
+  FOUNDRY_IQ_RETRIEVAL_EFFORT: "medium"
+
+  # Legacy Azure OpenAI (backward compatibility)
+  USE_LEGACY_OPENAI: "false"
   AZURE_OPENAI_DEPLOYMENT: "gpt-4o"
   AZURE_OPENAI_API_VERSION: "2024-08-01-preview"
-  
+
   # Search Service
   SEARCH_SERVICE_URL: "http://search-service:80"
-  
+
   # Redis
   REDIS_URL: "redis://redis-service:6379"
-  
+
   # Server
   HOST: "0.0.0.0"
   PORT: "8001"
   DEBUG: "false"
-  
+
   # Chat defaults
   DEFAULT_TEMPERATURE: "0.7"
   DEFAULT_MAX_TOKENS: "4096"
