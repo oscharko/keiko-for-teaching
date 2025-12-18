@@ -1,0 +1,166 @@
+# Grafana dashboard configurations
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: keiko-system
+  labels:
+    grafana_dashboard: "1"
+data:
+  keiko-overview.json: |
+    {
+      "dashboard": {
+        "title": "Keiko Platform Overview",
+        "tags": ["keiko", "overview"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "title": "Service Health",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=~\"keiko-.*\"}",
+                "legendFormat": "{{ job }}"
+              }
+            ]
+          },
+          {
+            "title": "Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total[5m])) by (service)",
+                "legendFormat": "{{ service }}"
+              }
+            ]
+          },
+          {
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) by (service)",
+                "legendFormat": "{{ service }}"
+              }
+            ]
+          },
+          {
+            "title": "Response Time (p95)",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))",
+                "legendFormat": "{{ service }}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+  keiko-chat-service.json: |
+    {
+      "dashboard": {
+        "title": "Chat Service Metrics",
+        "tags": ["keiko", "chat"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "title": "Chat Requests per Minute",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(chat_requests_total[1m]) * 60",
+                "legendFormat": "Requests/min"
+              }
+            ]
+          },
+          {
+            "title": "Average Response Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(chat_response_duration_seconds_sum[5m]) / rate(chat_response_duration_seconds_count[5m])",
+                "legendFormat": "Avg Response Time"
+              }
+            ]
+          },
+          {
+            "title": "RAG vs Non-RAG Requests",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "sum(chat_requests_total) by (use_rag)",
+                "legendFormat": "{{ use_rag }}"
+              }
+            ]
+          },
+          {
+            "title": "OpenAI API Latency",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(openai_api_duration_seconds_bucket[5m]))",
+                "legendFormat": "p95"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+  keiko-search-service.json: |
+    {
+      "dashboard": {
+        "title": "Search Service Metrics",
+        "tags": ["keiko", "search"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "title": "Search Requests per Minute",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(search_requests_total[1m]) * 60",
+                "legendFormat": "Requests/min"
+              }
+            ]
+          },
+          {
+            "title": "Cache Hit Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(search_cache_hits_total[5m]) / (rate(search_cache_hits_total[5m]) + rate(search_cache_misses_total[5m]))",
+                "legendFormat": "Hit Rate"
+              }
+            ]
+          },
+          {
+            "title": "Search Results Distribution",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.5, rate(search_results_count_bucket[5m]))",
+                "legendFormat": "p50"
+              },
+              {
+                "expr": "histogram_quantile(0.95, rate(search_results_count_bucket[5m]))",
+                "legendFormat": "p95"
+              }
+            ]
+          },
+          {
+            "title": "Azure AI Search Latency",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(azure_search_duration_seconds_bucket[5m]))",
+                "legendFormat": "p95"
+              }
+            ]
+          }
+        ]
+      }
+    }
+

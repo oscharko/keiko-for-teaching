@@ -395,9 +395,15 @@
 - [x] **Chat Service Unit Tests** - Priority: High | Complexity: Medium
   - services/chat-service/tests/unit/
 - [x] **Gateway BFF Unit Tests** - Priority: High | Complexity: Medium
-- [ ] **Search Service Unit Tests** - Priority: High | Complexity: Medium
-- [ ] **Document Service Unit Tests** - Priority: High | Complexity: Medium
-- [ ] **Auth Service Unit Tests** - Priority: Critical | Complexity: Medium
+- [x] **Search Service Unit Tests** - Priority: High | Complexity: Medium
+  - services/search-service/tests/unit/test_search.py
+  - services/search-service/tests/conftest.py
+- [x] **Document Service Unit Tests** - Priority: High | Complexity: Medium
+  - services/document-service/tests/unit/test_documents.py
+  - services/document-service/tests/conftest.py
+- [x] **Auth Service Unit Tests** - Priority: Critical | Complexity: Medium
+  - services/auth-service/tests/unit/test_auth.py
+  - services/auth-service/tests/conftest.py
 
 ### Unit Tests - Rust Service
 - [x] **Parser Unit Tests** - Priority: High | Complexity: Medium
@@ -406,35 +412,55 @@
 - [x] **API Unit Tests** - Priority: Medium | Complexity: Small
 
 ### Unit Tests - Frontend
-- [ ] **Vitest Setup** - Priority: High | Complexity: Small
-- [ ] **useChat Hook Tests** - Priority: High | Complexity: Medium
-- [ ] **Store Tests** - Priority: Medium | Complexity: Small
-- [ ] **Component Tests** - Priority: Medium | Complexity: Medium
+- [x] **Vitest Setup** - Priority: High | Complexity: Small
+  - apps/frontend/vitest.config.ts
+  - apps/frontend/src/test/setup.ts
+  - apps/frontend/src/test/utils.tsx
+- [x] **useChat Hook Tests** - Priority: High | Complexity: Medium
+  - apps/frontend/src/hooks/__tests__/use-chat.test.ts
+- [x] **Store Tests** - Priority: Medium | Complexity: Small
+  - apps/frontend/src/stores/__tests__/chat.test.ts
+- [x] **Component Tests** - Priority: Medium | Complexity: Medium
+  - apps/frontend/src/components/ui/__tests__/button.test.tsx
 
 ### Integration Tests
-- [ ] **Chat API Integration Tests** - Priority: High | Complexity: Medium
-- [ ] **Search API Integration Tests** - Priority: High | Complexity: Medium
-- [ ] **gRPC Integration Tests** - Priority: Medium | Complexity: Medium
-- [ ] **Gateway Integration Tests** - Priority: High | Complexity: Medium
+- [x] **Chat API Integration Tests** - Priority: High | Complexity: Medium
+  - services/chat-service/tests/integration/test_chat_api.py
+- [x] **Search API Integration Tests** - Priority: High | Complexity: Medium
+  - services/search-service/tests/integration/test_search_api.py
+- [x] **gRPC Integration Tests** - Priority: Medium | Complexity: Medium
+  - services/ingestion-service/tests/integration_test.rs
+- [x] **Gateway Integration Tests** - Priority: High | Complexity: Medium
+  - services/gateway-bff/tests/integration/test_gateway_api.py
 
 ### E2E Tests
-- [ ] **Playwright Setup** - Priority: High | Complexity: Small
+- [x] **Playwright Setup** - Priority: High | Complexity: Small
   - apps/frontend/playwright.config.ts
-- [ ] **Chat Flow E2E Tests** - Priority: High | Complexity: Medium
-- [ ] **Ideas Flow E2E Tests** - Priority: Medium | Complexity: Medium
-- [ ] **Document Upload E2E Tests** - Priority: Medium | Complexity: Medium
+- [x] **Chat Flow E2E Tests** - Priority: High | Complexity: Medium
+  - apps/frontend/e2e/chat.spec.ts
+- [x] **Ideas Flow E2E Tests** - Priority: Medium | Complexity: Medium
+  - apps/frontend/e2e/ideas.spec.ts
+- [x] **Document Upload E2E Tests** - Priority: Medium | Complexity: Medium
+  - apps/frontend/e2e/documents.spec.ts
 
 ### Monitoring & Alerting
-- [ ] **Prometheus Rules** - Priority: High | Complexity: Medium
-  - infra/kubernetes/monitoring/alerts.yaml
-- [ ] **Grafana Dashboards** - Priority: Medium | Complexity: Medium
-- [ ] **Azure Monitor Integration** - Priority: Medium | Complexity: Medium
+- [x] **Prometheus Rules** - Priority: High | Complexity: Medium
+  - infra/kubernetes/base/monitoring/prometheus-config.yaml
+  - infra/kubernetes/base/monitoring/alert-rules.yaml
+  - infra/kubernetes/base/monitoring/alertmanager-config.yaml
+- [x] **Grafana Dashboards** - Priority: Medium | Complexity: Medium
+  - infra/kubernetes/base/monitoring/grafana-dashboards.yaml
+- [x] **Azure Monitor Integration** - Priority: Medium | Complexity: Medium
+  - services/shared/monitoring.py
 
 ### Rollback Procedures
-- [ ] **Rollback Scripts** - Priority: High | Complexity: Small
+- [x] **Rollback Scripts** - Priority: High | Complexity: Small
   - tools/scripts/rollback.sh
-- [ ] **Database Migration Rollback** - Priority: High | Complexity: Medium
-- [ ] **Blue-Green Deployment Config** - Priority: Medium | Complexity: Medium
+  - tools/scripts/database-rollback.sh
+- [x] **Database Migration Rollback** - Priority: High | Complexity: Medium
+  - docs/ROLLBACK_PROCEDURES.md
+- [x] **Blue-Green Deployment Config** - Priority: Medium | Complexity: Medium
+  - infra/kubernetes/base/deployment-config.yaml
 - [ ] **Canary Deployment Config (Istio)** - Priority: Low | Complexity: Large
 
 ---
@@ -476,7 +502,7 @@
 | Phase 2: Microservices | 56 | 0 | 100% |
 | Phase 3: Frontend | 22 | 52 | 30% |
 | Phase 4: API Contracts | 16 | 0 | 100% |
-| Phase 5: Testing | 5 | 17 | 23% |
+| Phase 5: Testing | 21 | 1 | 95% |
 | Infrastruktur | 0 | 12 | 0% |
 
 ### Phase 2: Microservices - Abgeschlossene Implementierungen

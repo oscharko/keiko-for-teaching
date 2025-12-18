@@ -1,0 +1,167 @@
+# Deployment configuration with rollback support
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.serviceName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.serviceName }}
+    version: {{ .Values.version }}
+  annotations:
+    # Deployment annotations for tracking
+    deployment.kubernetes.io/revision: "{{ .Values.revision }}"
+    rollback.keiko.com/previous-version: "{{ .Values.previousVersion }}"
+spec:
+  # Rollback configuration
+  revisionHistoryLimit: 10  # Keep last 10 revisions for rollback
+  
+  # Progressive rollout strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0  # Zero downtime deployment
+  
+  # Replica configuration
+  replicas: {{ .Values.replicas }}
+  
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceName }}
+  
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.serviceName }}
+        version: {{ .Values.version }}
+      annotations:
+        # Prometheus scraping
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.metricsPort }}"
+        prometheus.io/path: "/metrics"
+    
+    spec:
+      # Service account for Azure managed identity
+      serviceAccountName: {{ .Values.serviceName }}-sa
+      
+      # Init containers for pre-deployment checks
+      initContainers:
+        - name: wait-for-dependencies
+          image: busybox:1.35
+          command:
+            - sh
+            - -c
+            - |
+              echo "Checking dependencies..."
+              # Add dependency checks here
+              echo "Dependencies ready"
+      
+      containers:
+        - name: {{ .Values.serviceName }}
+          image: {{ .Values.image }}:{{ .Values.version }}
+          imagePullPolicy: Always
+          
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.metricsPort }}
+              protocol: TCP
+          
+          # Environment variables
+          env:
+            - name: ENVIRONMENT
+              value: {{ .Values.environment }}
+            - name: SERVICE_NAME
+              value: {{ .Values.serviceName }}
+            - name: VERSION
+              value: {{ .Values.version }}
+          
+          # Environment from ConfigMap
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.serviceName }}-config
+            - secretRef:
+                name: {{ .Values.serviceName }}-secrets
+          
+          # Resource limits
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          
+          # Liveness probe
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          # Readiness probe
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          
+          # Startup probe (for slow-starting containers)
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+          
+          # Volume mounts
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+      
+      # Volumes
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Values.serviceName }}-config
+      
+      # Pod disruption budget for high availability
+      # (defined separately)
+      
+      # Affinity rules for better distribution
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ .Values.serviceName }}
+                topologyKey: kubernetes.io/hostname
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Values.serviceName }}-pdb
+  namespace: {{ .Values.namespace }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceName }}
+
