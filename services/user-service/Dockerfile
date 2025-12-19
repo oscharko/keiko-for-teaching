@@ -1,20 +1,27 @@
-FROM python:3.12-slim AS builder
+# Build from repository root: docker build -t user-service -f services/user-service/Dockerfile .
+FROM python:3.12-slim
 
 WORKDIR /app
 RUN pip install --no-cache-dir uv
 
-COPY pyproject.toml ./
-RUN uv pip install --system --no-cache -e .
+# Install dependencies directly
+RUN uv pip install --system --no-cache \
+    "fastapi>=0.115.6" \
+    "uvicorn[standard]>=0.34.0" \
+    "httpx>=0.28.1" \
+    "redis>=5.2.1" \
+    "pydantic>=2.10.3" \
+    "pydantic-settings>=2.7.0" \
+    "opentelemetry-api>=1.29.0" \
+    "opentelemetry-sdk>=1.29.0" \
+    "opentelemetry-instrumentation-fastapi>=0.50b0"
 
-FROM python:3.12-slim
-
-WORKDIR /app
 RUN useradd --create-home --shell /bin/bash appuser
 
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY app ./app
-COPY ../shared ./shared
+COPY services/user-service/app ./app
+COPY services/shared ./shared
+
+ENV PYTHONPATH=/app
 
 USER appuser
 EXPOSE 8005

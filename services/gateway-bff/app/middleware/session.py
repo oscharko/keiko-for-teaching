@@ -9,10 +9,8 @@ from typing import Any
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-# Add shared modules to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "shared"))
 
-from cache import get_cache_client
+from shared.cache import get_cache_client
 
 
 class SessionMiddleware(BaseHTTPMiddleware):

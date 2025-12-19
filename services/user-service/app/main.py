@@ -7,10 +7,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-# Add shared modules to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "shared"))
 
-from cache import get_cache_client
+from shared.cache import get_cache_client
 
 from .config import settings
 from .routers import health, users

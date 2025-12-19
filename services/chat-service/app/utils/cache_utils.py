@@ -6,10 +6,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# Add shared modules to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "shared"))
 
-from cache import CacheClient
+from shared.cache import CacheClient
 
 
 def generate_cache_key(messages: list[dict[str, str]], **kwargs) -> str:

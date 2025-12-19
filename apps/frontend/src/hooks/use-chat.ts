@@ -14,13 +14,11 @@ export function useChat() {
     mutationFn: (request: ChatRequest) => chatApi.sendMessage(request),
     onSuccess: (response) => {
       addMessage({
-        id: Date.now().toString(),
         role: 'assistant',
-        content: response.answer,
-        timestamp: new Date().toISOString(),
-        citations: response.citations,
-        dataPoints: response.data_points,
-        followUpQuestions: response.follow_up_questions,
+        content: response.message.content,
+        citations: response.context?.data_points?.citations,
+        dataPoints: response.context?.data_points?.text,
+        followUpQuestions: response.context?.followup_questions,
       });
       setError(null);
     },
@@ -33,18 +31,31 @@ export function useChat() {
   const sendMessage = useCallback(
     async (content: string, useStreaming = true) => {
       // Add user message
-      const userMessage = {
-        id: Date.now().toString(),
+      addMessage({
+        role: 'user',
+        content,
+      });
+
+      // Build messages array from conversation history
+      const conversationMessages = messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      // Add the new user message
+      conversationMessages.push({
         role: 'user' as const,
         content,
-        timestamp: new Date().toISOString(),
-      };
-      addMessage(userMessage);
+      });
 
       const request: ChatRequest = {
-        message: content,
-        conversation_id: 'default', // TODO: Implement conversation management
-        use_rag: true,
+        messages: conversationMessages,
+        context: {
+          overrides: {
+            use_rag: true,
+            suggest_followup_questions: true,
+          },
+        },
       };
 
       if (useStreaming) {
@@ -52,33 +63,30 @@ export function useChat() {
         setLoading(true);
 
         try {
-          const assistantMessageId = (Date.now() + 1).toString();
           let accumulatedContent = '';
           let citations: any[] = [];
           let dataPoints: any[] = [];
           let followUpQuestions: string[] = [];
 
-          // Add placeholder assistant message
-          addMessage({
-            id: assistantMessageId,
+          // Add placeholder assistant message and get its ID
+          const assistantMessageId = addMessage({
             role: 'assistant',
             content: '',
-            timestamp: new Date().toISOString(),
           });
 
           // Stream the response
           for await (const chunk of chatApi.streamMessage(request)) {
-            if (chunk.answer) {
-              accumulatedContent += chunk.answer;
+            if (chunk.message?.content) {
+              accumulatedContent += chunk.message.content;
             }
-            if (chunk.citations) {
-              citations = chunk.citations;
+            if (chunk.context?.data_points?.citations) {
+              citations = chunk.context.data_points.citations;
             }
-            if (chunk.data_points) {
-              dataPoints = chunk.data_points;
+            if (chunk.context?.data_points?.text) {
+              dataPoints = chunk.context.data_points.text;
             }
-            if (chunk.follow_up_questions) {
-              followUpQuestions = chunk.follow_up_questions;
+            if (chunk.context?.followup_questions) {
+              followUpQuestions = chunk.context.followup_questions;
             }
 
             // Update the message with accumulated content

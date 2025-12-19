@@ -4,19 +4,7 @@ import { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage } from './chat-message';
 import { Loader2 } from 'lucide-react';
-
-interface ChatMessageType {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp?: string;
-  citations?: any[];
-  dataPoints?: any[];
-  followUpQuestions?: string[];
-  context?: {
-    followup_questions?: string[];
-  };
-}
+import type { ChatMessage as ChatMessageType } from '@/stores/chat';
 
 interface ChatMessagesProps {
   messages: ChatMessageType[];

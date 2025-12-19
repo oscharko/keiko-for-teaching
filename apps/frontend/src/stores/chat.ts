@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import type { Message, ResponseContext } from '@keiko/shared-types';
 
-interface ChatMessage extends Message {
+export interface ChatMessage extends Message {
   id: string;
   timestamp: number;
   context?: ResponseContext;
+  citations?: any[];
+  dataPoints?: any[];
+  followUpQuestions?: string[];
 }
 
 interface ChatState {

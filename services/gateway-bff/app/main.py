@@ -9,10 +9,8 @@ import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Add shared modules to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "shared"))
 
-from cache import get_cache_client
+from shared.cache import get_cache_client
 
 from .config import settings
 from .middleware import SessionMiddleware

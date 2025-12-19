@@ -76,9 +76,9 @@ async function fetchApi<T>(
 
       // Add auth token if available
       const token = getAuthToken();
-      const headers: HeadersInit = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...requestOptions.headers,
+        ...(requestOptions.headers as Record<string, string>),
       };
 
       if (token) {
@@ -165,9 +165,9 @@ async function* streamApi<T>(
 
   // Add auth token if available
   const token = getAuthToken();
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...requestOptions.headers,
+    ...(requestOptions.headers as Record<string, string>),
   };
 
   if (token) {

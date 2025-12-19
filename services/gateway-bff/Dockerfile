@@ -1,20 +1,20 @@
-FROM python:3.12-slim AS builder
+# Build from repository root: docker build -t gateway-bff -f services/gateway-bff/Dockerfile .
+FROM python:3.12-slim
 
 WORKDIR /app
 RUN pip install --no-cache-dir uv
 
-COPY pyproject.toml ./
-RUN uv pip install --system --no-cache -e .
+# Copy pyproject.toml and install dependencies
+COPY services/gateway-bff/pyproject.toml ./
+RUN uv pip install --system --no-cache .
 
-FROM python:3.12-slim
-
-WORKDIR /app
 RUN useradd --create-home --shell /bin/bash appuser
 
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY app ./app
-COPY ../shared ./shared
+COPY services/gateway-bff/app ./app
+COPY services/shared ./shared
+
+# Add app directory to Python path
+ENV PYTHONPATH=/app
 
 USER appuser
 EXPOSE 8000

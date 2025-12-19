@@ -41,6 +41,8 @@ export interface ChatOverrides {
   suggest_followup_questions?: boolean;
   use_oid_security_filter?: boolean;
   use_groups_security_filter?: boolean;
+  use_rag?: boolean;
+  stream?: boolean;
 }
 
 export interface ChatResponse {

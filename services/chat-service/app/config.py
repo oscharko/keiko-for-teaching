@@ -38,7 +38,19 @@ class Settings(BaseSettings):
     search_service_url: str = "http://localhost:8002"
 
     # Redis Cache
-    redis_url: str = "redis://localhost:6379"
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_password: str | None = None
+    redis_url: str | None = None  # Optional: full URL override
+
+    @property
+    def get_redis_url(self) -> str:
+        """Construct Redis URL from components if not explicitly provided."""
+        if self.redis_url:
+            return self.redis_url
+        
+        auth_part = f":{self.redis_password}@" if self.redis_password else ""
+        return f"redis://{auth_part}{self.redis_host}:{self.redis_port}"
 
     # Server
     host: str = "0.0.0.0"

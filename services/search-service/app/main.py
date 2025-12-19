@@ -9,11 +9,9 @@ from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.aio import SearchClient
 from fastapi import FastAPI
 
-# Add shared modules to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "shared"))
 
-from azure_identity import get_azure_credential
-from cache import get_cache_client
+from shared.azure_identity import get_azure_credential
+from shared.cache import get_cache_client
 
 from .config import settings
 from .routers import health, search

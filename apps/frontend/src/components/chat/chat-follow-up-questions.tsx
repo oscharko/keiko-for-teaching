@@ -4,17 +4,19 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 
 interface ChatFollowUpQuestionsProps {
-  questions: string[];
-  onQuestionClick: (question: string) => void;
-}
+	  questions: string[];
+	  // Optional click handler so the component can be rendered safely without an action in some contexts
+	  onQuestionClick?: (question: string) => void;
+	}
 
-export function ChatFollowUpQuestions({
-  questions,
-  onQuestionClick,
-}: ChatFollowUpQuestionsProps) {
-  if (!questions || questions.length === 0) {
-    return null;
-  }
+	export function ChatFollowUpQuestions({
+	  questions,
+	  onQuestionClick,
+	}: ChatFollowUpQuestionsProps) {
+	  // If there are no questions or no click handler, there is nothing actionable to render
+	  if (!questions || questions.length === 0 || !onQuestionClick) {
+	    return null;
+	  }
 
   return (
     <div className="mt-4 space-y-2">

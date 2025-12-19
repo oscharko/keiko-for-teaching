@@ -24,6 +24,7 @@ export default function IdeasPage() {
     createIdea({
       ...ideaData,
       author: 'Current User', // TODO: Get from auth context
+      status: 'draft', // Default status for new ideas
     });
     setDialogOpen(false);
   };

@@ -6,23 +6,14 @@ import { User, Bot, Loader2 } from 'lucide-react';
 import { ChatCitations } from './chat-citations';
 import { ChatDataPoints } from './chat-data-points';
 import { ChatFollowUpQuestions } from './chat-follow-up-questions';
+import type { ChatMessage as ChatMessageModel } from '@/stores/chat';
 
 interface ChatMessageProps {
-  message: {
-    id: string;
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-    timestamp?: string;
-    citations?: any[];
-    dataPoints?: any[];
-    followUpQuestions?: string[];
-    context?: {
-      followup_questions?: string[];
-    };
-  };
-  isStreaming?: boolean;
-  onFollowUpClick?: (question: string) => void;
-}
+	  // Full chat message model as stored in the chat store
+	  message: ChatMessageModel;
+	  isStreaming?: boolean;
+	  onFollowUpClick?: (question: string) => void;
+	}
 
 export function ChatMessage({ message, isStreaming, onFollowUpClick }: ChatMessageProps) {
   const isUser = message.role === 'user';
