@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Initialize cache client
     app.state.cache_client = get_cache_client(
-        redis_url=settings.redis_url,
+        redis_url=settings.redis_url_computed,
         default_ttl=3600,
         key_prefix="keiko:gateway",
     )
@@ -74,7 +74,7 @@ if settings.enable_auth:
 # Add session middleware
 app.add_middleware(
     SessionMiddleware,
-    redis_url=settings.redis_url,
+    redis_url=settings.redis_url_computed,
     session_ttl=3600,  # 1 hour
 )
 

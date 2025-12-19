@@ -1,6 +1,6 @@
 // HTML parser implementation using scraper
 
-use async_trait::async_trait;
+use std::io::Read;
 use scraper::{Html, Selector};
 
 use super::traits::{Page, Parser, ParserError};
@@ -20,8 +20,6 @@ impl HtmlParser {
         // Remove script and style tags
         let body_selector = Selector::parse("body")
             .map_err(|e| ParserError::ParseError(format!("Invalid selector: {:?}", e)))?;
-        let script_selector = Selector::parse("script, style")
-            .map_err(|e| ParserError::ParseError(format!("Invalid selector: {:?}", e)))?;
 
         let mut text = String::new();
 
@@ -32,8 +30,8 @@ impl HtmlParser {
             let cleaned_doc = Html::parse_fragment(&body_html);
 
             // Extract text
-            for element in cleaned_doc.tree {
-                if let scraper::node::Node::Text(text_node) = element {
+            for element in cleaned_doc.tree.nodes() {
+                if let scraper::node::Node::Text(text_node) = element.value() {
                     let content = text_node.text.trim();
                     if !content.is_empty() {
                         text.push_str(content);
@@ -58,11 +56,15 @@ impl HtmlParser {
     }
 }
 
-#[async_trait]
 impl Parser for HtmlParser {
-    async fn parse(&self, data: &[u8]) -> Result<Vec<Page>, ParserError> {
+    fn parse<R: Read>(&self, mut reader: R) -> Result<Vec<Page>, ParserError> {
+        // Read bytes from reader
+        let mut data = Vec::new();
+        reader.read_to_end(&mut data)
+            .map_err(|e| ParserError::Io(e))?;
+
         // Convert bytes to string
-        let html = String::from_utf8(data.to_vec())
+        let html = String::from_utf8(data)
             .map_err(|e| ParserError::ParseError(format!("Invalid UTF-8: {}", e)))?;
 
         // Extract text
@@ -76,7 +78,7 @@ impl Parser for HtmlParser {
 
         // Split into pages (every ~2000 characters)
         let mut pages = Vec::new();
-        let mut page_number = 1;
+        let mut page_num = 1u32;
         let mut current_pos = 0;
 
         while current_pos < text.len() {
@@ -84,42 +86,53 @@ impl Parser for HtmlParser {
             let page_text = &text[current_pos..end_pos];
 
             pages.push(Page {
-                page_number,
+                page_num,
                 text: page_text.to_string(),
+                images: Vec::new(),
             });
 
             current_pos = end_pos;
-            page_number += 1;
+            page_num += 1;
         }
 
         Ok(pages)
     }
 
-    fn supported_formats(&self) -> Vec<String> {
-        vec![
-            "html".to_string(),
-            "htm".to_string(),
-            "text/html".to_string(),
-        ]
+    fn supported_extensions(&self) -> &[&str] {
+        &["html", "htm"]
+    }
+
+    fn supported_mime_types(&self) -> &[&str] {
+        &["text/html"]
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Cursor;
 
-    #[tokio::test]
-    async fn test_html_parser_supported_formats() {
+    #[test]
+    fn test_html_parser_supported_extensions() {
         let parser = HtmlParser::new();
-        let formats = parser.supported_formats();
-        assert!(formats.contains(&"html".to_string()));
+        let extensions = parser.supported_extensions();
+        assert!(extensions.contains(&"html"));
+        assert!(extensions.contains(&"htm"));
     }
 
-    #[tokio::test]
-    async fn test_html_parser_basic() {
+    #[test]
+    fn test_html_parser_supported_mime_types() {
+        let parser = HtmlParser::new();
+        let mime_types = parser.supported_mime_types();
+        assert!(mime_types.contains(&"text/html"));
+    }
+
+    #[test]
+    fn test_html_parser_basic() {
         let parser = HtmlParser::new();
         let html = b"<html><body><h1>Test</h1><p>Content</p></body></html>";
-        let result = parser.parse(html).await;
+        let cursor = Cursor::new(html.to_vec());
+        let result = parser.parse(cursor);
         assert!(result.is_ok());
         let pages = result.unwrap();
         assert!(!pages.is_empty());

@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Initialize cache client
     app.state.cache_client = get_cache_client(
-        redis_url=getattr(settings, "redis_url", "redis://localhost:6379"),
+        redis_url=settings.redis_url_computed,
         default_ttl=3600,
         key_prefix="keiko:chat",
     )

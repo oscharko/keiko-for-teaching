@@ -1,8 +1,8 @@
 services:
   frontend:
     build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/frontend/Dockerfile
     ports:
       - "3000:3000"
     environment:
@@ -12,8 +12,8 @@ services:
 
   gateway:
     build:
-      context: ./services/gateway-bff
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/gateway-bff/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -28,11 +28,12 @@ services:
 
   chat:
     build:
-      context: ./services/chat-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/chat-service/Dockerfile
     ports:
       - "8001:8001"
     environment:
+      - REDIS_URL=redis://redis:6379
       # Microsoft Foundry
       - FOUNDRY_ENDPOINT=${FOUNDRY_ENDPOINT}
       - FOUNDRY_API_KEY=${FOUNDRY_API_KEY}
@@ -56,36 +57,40 @@ services:
 
   search:
     build:
-      context: ./services/search-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/search-service/Dockerfile
     ports:
       - "8002:8002"
     environment:
+      - REDIS_URL=redis://redis:6379
       - AZURE_SEARCH_ENDPOINT=${AZURE_SEARCH_ENDPOINT}
       - AZURE_SEARCH_KEY=${AZURE_SEARCH_KEY}
       - AZURE_SEARCH_INDEX=${AZURE_SEARCH_INDEX}
 
   document:
     build:
-      context: ./services/document-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/document-service/Dockerfile
     ports:
       - "8003:8003"
     environment:
+      - REDIS_URL=redis://redis:6379
       - AZURE_STORAGE_ACCOUNT=${AZURE_STORAGE_ACCOUNT}
       - AZURE_STORAGE_CONTAINER=${AZURE_STORAGE_CONTAINER}
       - INGESTION_SERVICE_URL=http://ingestion:8004
 
   ingestion:
     build:
-      context: ./services/ingestion-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/ingestion-service/Dockerfile
     ports:
       - "8004:8004"
       - "50051:50051"
     environment:
       - AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT}
       - AZURE_DOCUMENT_INTELLIGENCE_KEY=${AZURE_DOCUMENT_INTELLIGENCE_KEY}
+    depends_on:
+      - redis
 
   redis:
     image: redis:7-alpine

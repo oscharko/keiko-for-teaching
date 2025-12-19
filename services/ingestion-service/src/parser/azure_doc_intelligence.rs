@@ -1,8 +1,8 @@
 // Azure Document Intelligence parser implementation
 
-use async_trait::async_trait;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use std::io::Read;
 use std::time::Duration;
 
 use super::traits::{Page, Parser, ParserError};
@@ -107,10 +107,17 @@ impl AzureDocIntelligenceParser {
     }
 }
 
-#[async_trait]
 impl Parser for AzureDocIntelligenceParser {
-    async fn parse(&self, data: &[u8]) -> Result<Vec<Page>, ParserError> {
-        let result = self.analyze_document(data).await?;
+    fn parse<R: Read>(&self, mut reader: R) -> Result<Vec<Page>, ParserError> {
+        // Read bytes from reader
+        let mut data = Vec::new();
+        reader.read_to_end(&mut data)
+            .map_err(|e| ParserError::Io(e))?;
+
+        // Use tokio::task::block_in_place to run async code in sync context
+        let result = tokio::task::block_in_place(|| {
+            tokio::runtime::Handle::current().block_on(self.analyze_document(&data))
+        })?;
 
         let analysis = result
             .analyze_result
@@ -131,8 +138,9 @@ impl Parser for AzureDocIntelligenceParser {
 
                 if !text.trim().is_empty() {
                     pages.push(Page {
-                        page_number: doc_page.page_number as usize,
+                        page_num: doc_page.page_number as u32,
                         text: text.trim().to_string(),
+                        images: Vec::new(),
                     });
                 }
             }
@@ -147,14 +155,17 @@ impl Parser for AzureDocIntelligenceParser {
         Ok(pages)
     }
 
-    fn supported_formats(&self) -> Vec<String> {
-        vec![
-            "pdf".to_string(),
-            "jpg".to_string(),
-            "jpeg".to_string(),
-            "png".to_string(),
-            "bmp".to_string(),
-            "tiff".to_string(),
+    fn supported_extensions(&self) -> &[&str] {
+        &["pdf", "jpg", "jpeg", "png", "bmp", "tiff"]
+    }
+
+    fn supported_mime_types(&self) -> &[&str] {
+        &[
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/bmp",
+            "image/tiff",
         ]
     }
 }

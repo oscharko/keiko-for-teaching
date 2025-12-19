@@ -1,0 +1,56 @@
+# ============================================================================
+# Docker Compose for Local Development - Infrastructure Only
+# ============================================================================
+# This file starts only the infrastructure services (Redis, Azurite)
+# Backend services (Python/FastAPI) and Frontend (Next.js) are started
+# directly by the dev-start.sh script for better development experience
+# ============================================================================
+
+services:
+  # Redis - Caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: keiko-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - keiko-dev
+
+  # Azurite - Azure Storage emulator
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: keiko-azurite-dev
+    ports:
+      - "10000:10000"  # Blob Storage
+      - "10001:10001"  # Queue Storage
+      - "10002:10002"  # Table Storage
+    volumes:
+      - azurite-data:/data
+    environment:
+      - AZURITE_ACCOUNTS=devstoreaccount1:devstorekey1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - keiko-dev
+
+volumes:
+  redis-data:
+    driver: local
+  azurite-data:
+    driver: local
+
+networks:
+  keiko-dev:
+    driver: bridge
+

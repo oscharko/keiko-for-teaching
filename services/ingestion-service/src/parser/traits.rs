@@ -7,6 +7,8 @@ pub enum ParserError {
     Io(#[from] std::io::Error),
     #[error("PDF parsing error: {0}")]
     PdfParse(String),
+    #[error("Parse error: {0}")]
+    ParseError(String),
     #[error("Unsupported format: {0}")]
     UnsupportedFormat(String),
 }

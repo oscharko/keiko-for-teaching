@@ -9,6 +9,7 @@ RUN uv pip install --system --no-cache \
     "fastapi>=0.115.6" \
     "uvicorn[standard]>=0.34.0" \
     "httpx>=0.28.1" \
+    "aiohttp>=3.10.0" \
     "azure-identity>=1.19.0" \
     "azure-search-documents>=11.6.0" \
     "redis>=5.2.1" \

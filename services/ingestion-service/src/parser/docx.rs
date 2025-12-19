@@ -1,7 +1,6 @@
 // DOCX parser implementation using docx-rs
 
-use async_trait::async_trait;
-use std::io::Cursor;
+use std::io::Read;
 
 use super::traits::{Page, Parser, ParserError};
 
@@ -14,17 +13,20 @@ impl DocxParser {
     }
 }
 
-#[async_trait]
 impl Parser for DocxParser {
-    async fn parse(&self, data: &[u8]) -> Result<Vec<Page>, ParserError> {
+    fn parse<R: Read>(&self, mut reader: R) -> Result<Vec<Page>, ParserError> {
+        // Read bytes from reader
+        let mut data = Vec::new();
+        reader.read_to_end(&mut data)
+            .map_err(|e| ParserError::Io(e))?;
+
         // Parse DOCX file
-        let cursor = Cursor::new(data);
-        let docx = docx_rs::read_docx(&cursor)
+        let docx = docx_rs::read_docx(&data)
             .map_err(|e| ParserError::ParseError(format!("Failed to parse DOCX: {}", e)))?;
 
         let mut pages = Vec::new();
         let mut current_text = String::new();
-        let mut page_number = 1;
+        let mut page_num = 1u32;
 
         // Extract text from document
         for child in docx.document.children {
@@ -40,7 +42,7 @@ impl Parser for DocxParser {
                             }
                         }
                     }
-                    
+
                     if !para_text.is_empty() {
                         current_text.push_str(&para_text);
                         current_text.push('\n');
@@ -49,11 +51,12 @@ impl Parser for DocxParser {
                     // Split into pages every ~2000 characters (approximate page)
                     if current_text.len() > 2000 {
                         pages.push(Page {
-                            page_number,
+                            page_num,
                             text: current_text.trim().to_string(),
+                            images: Vec::new(),
                         });
                         current_text.clear();
-                        page_number += 1;
+                        page_num += 1;
                     }
                 }
                 _ => {}
@@ -63,8 +66,9 @@ impl Parser for DocxParser {
         // Add remaining text as last page
         if !current_text.trim().is_empty() {
             pages.push(Page {
-                page_number,
+                page_num,
                 text: current_text.trim().to_string(),
+                images: Vec::new(),
             });
         }
 
@@ -77,8 +81,12 @@ impl Parser for DocxParser {
         Ok(pages)
     }
 
-    fn supported_formats(&self) -> Vec<String> {
-        vec!["docx".to_string(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document".to_string()]
+    fn supported_extensions(&self) -> &[&str] {
+        &["docx"]
+    }
+
+    fn supported_mime_types(&self) -> &[&str] {
+        &["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
     }
 }
 
@@ -86,11 +94,18 @@ impl Parser for DocxParser {
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn test_docx_parser_supported_formats() {
+    #[test]
+    fn test_docx_parser_supported_extensions() {
         let parser = DocxParser::new();
-        let formats = parser.supported_formats();
-        assert!(formats.contains(&"docx".to_string()));
+        let extensions = parser.supported_extensions();
+        assert!(extensions.contains(&"docx"));
+    }
+
+    #[test]
+    fn test_docx_parser_supported_mime_types() {
+        let parser = DocxParser::new();
+        let mime_types = parser.supported_mime_types();
+        assert!(mime_types.contains(&"application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
     }
 }
 

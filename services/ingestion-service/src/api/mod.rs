@@ -5,7 +5,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::io::Cursor;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
@@ -71,11 +71,13 @@ async fn parse_document(mut multipart: Multipart) -> Result<Json<ParseResponse>,
     let mut filename = String::new();
     let mut content_type = String::new();
 
-    while let Some(field) = multipart.next_field().await.map_err(|_| StatusCode::BAD_REQUEST)? {
+    while let Ok(Some(field)) = multipart.next_field().await {
         if field.name() == Some("file") {
             filename = field.file_name().unwrap_or("unknown").to_string();
             content_type = field.content_type().unwrap_or("application/octet-stream").to_string();
-            file_data = Some(field.bytes().await.map_err(|_| StatusCode::BAD_REQUEST)?.to_vec());
+            if let Ok(bytes) = field.bytes().await {
+                file_data = Some(bytes.to_vec());
+            }
         }
     }
 

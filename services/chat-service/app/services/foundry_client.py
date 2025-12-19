@@ -3,7 +3,6 @@
 import logging
 from typing import Any
 
-from azure.ai.agents.models import Agent, AgentThread, ThreadMessage
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import (
     AssistantMessage,
@@ -129,7 +128,7 @@ class FoundryClient:
         instructions: str,
         model: str | None = None,
         tools: list[str] | None = None,
-    ) -> Agent:
+    ) -> Any:
         """Create a Foundry Agent.
 
         Args:
@@ -151,7 +150,7 @@ class FoundryClient:
         logger.info(f"Created Foundry Agent: {name} (ID: {agent.id})")
         return agent
 
-    async def create_thread(self) -> AgentThread:
+    async def create_thread(self) -> Any:
         """Create a conversation thread for agent interactions.
 
         Returns:
@@ -166,7 +165,7 @@ class FoundryClient:
         thread_id: str,
         content: str,
         agent_id: str,
-    ) -> list[ThreadMessage]:
+    ) -> list[Any]:
         """Send a message to an agent thread and get response.
 
         Args:
@@ -263,7 +262,7 @@ class FoundryClient:
             "retrieval_effort": retrieval_effort,
         }
 
-    def _extract_citations(self, messages: list[ThreadMessage]) -> list[dict[str, Any]]:
+    def _extract_citations(self, messages: list[Any]) -> list[dict[str, Any]]:
         """Extract citations from agent messages.
 
         Args:

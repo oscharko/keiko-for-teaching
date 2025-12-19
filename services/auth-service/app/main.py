@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application lifespan - startup and shutdown."""
     # Initialize cache client for session management
     app.state.cache_client = get_cache_client(
-        redis_url=settings.redis_url,
+        redis_url=settings.redis_url_computed,
         default_ttl=settings.jwt_expiration_minutes * 60,
         key_prefix="keiko:auth",
     )
