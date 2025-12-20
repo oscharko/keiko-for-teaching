@@ -237,16 +237,36 @@ async function* streamApi<T>(
 
 // Chat API
 export const chatApi = {
+  /**
+   * Send a chat message and receive a standard response.
+   * @param request - Chat request with messages and optional context
+   * @returns Promise with chat response
+   */
   sendMessage: (request: ChatRequest): Promise<ChatResponse> =>
-    fetchApi('/api/chat', {
+    fetchApi<ChatResponse>('/api/chat', {
       method: 'POST',
       body: JSON.stringify(request),
     }),
 
+  /**
+   * Send a chat message and receive a streaming response.
+   * Uses Server-Sent Events (SSE) for real-time streaming.
+   * @param request - Chat request with messages and optional context
+   * @returns AsyncGenerator yielding chat response chunks
+   */
   streamMessage: (request: ChatRequest) =>
-    streamApi<ChatResponse>('/api/chat/stream', {
+    streamApi<ChatResponse>('/api/chat', {
       method: 'POST',
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        ...request,
+        context: {
+          ...request.context,
+          overrides: {
+            ...request.context?.overrides,
+            stream: true, // Enable streaming on backend
+          },
+        },
+      }),
     }),
 };
 

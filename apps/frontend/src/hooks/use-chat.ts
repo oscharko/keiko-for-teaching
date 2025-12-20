@@ -30,7 +30,13 @@ export function useChat() {
 
   const sendMessage = useCallback(
     async (content: string, useStreaming = true) => {
-      // Add user message
+      // Validate input
+      if (!content.trim()) {
+        setError('Message cannot be empty');
+        return;
+      }
+
+      // Add a user message
       addMessage({
         role: 'user',
         content,
@@ -54,6 +60,7 @@ export function useChat() {
           overrides: {
             use_rag: true,
             suggest_followup_questions: true,
+            stream: useStreaming, // Enable streaming on the backend
           },
         },
       };
@@ -64,8 +71,8 @@ export function useChat() {
 
         try {
           let accumulatedContent = '';
-          let citations: any[] = [];
-          let dataPoints: any[] = [];
+          let citations: string[] = [];
+          let dataPoints: string[] = [];
           let followUpQuestions: string[] = [];
 
           // Add placeholder assistant message and get its ID
@@ -76,15 +83,31 @@ export function useChat() {
 
           // Stream the response
           for await (const chunk of chatApi.streamMessage(request)) {
+            // Handle error events
+            if (chunk.error) {
+              throw new Error(chunk.error);
+            }
+
+            // Handle done signal
+            if (chunk.done) {
+              break;
+            }
+
+            // Accumulate content from message chunks
             if (chunk.message?.content) {
               accumulatedContent += chunk.message.content;
             }
-            if (chunk.context?.data_points?.citations) {
-              citations = chunk.context.data_points.citations;
+
+            // Extract context data
+            if (chunk.context?.data_points) {
+              if (chunk.context.data_points.citations) {
+                citations = chunk.context.data_points.citations;
+              }
+              if (chunk.context.data_points.text) {
+                dataPoints = chunk.context.data_points.text;
+              }
             }
-            if (chunk.context?.data_points?.text) {
-              dataPoints = chunk.context.data_points.text;
-            }
+
             if (chunk.context?.followup_questions) {
               followUpQuestions = chunk.context.followup_questions;
             }
@@ -100,8 +123,26 @@ export function useChat() {
 
           setError(null);
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Streaming failed';
+          // Handle different error types
+          let errorMessage = 'Failed to get response';
+
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          } else if (typeof error === 'string') {
+            errorMessage = error;
+          }
+
+          // Provide user-friendly error messages
+          if (errorMessage.includes('Network')) {
+            errorMessage = 'Network error. Please check your connection.';
+          } else if (errorMessage.includes('timeout')) {
+            errorMessage = 'Request timed out. Please try again.';
+          } else if (errorMessage.includes('401') || errorMessage.includes('403')) {
+            errorMessage = 'Authentication failed. Please log in again.';
+          }
+
           setError(errorMessage);
+          console.error('Chat streaming error:', error);
         } finally {
           setIsStreaming(false);
           setLoading(false);
@@ -111,7 +152,7 @@ export function useChat() {
         sendMessageMutation.mutate(request);
       }
     },
-    [addMessage, updateMessage, setLoading, setError, sendMessageMutation]
+    [addMessage, updateMessage, setLoading, setError, sendMessageMutation, messages]
   );
 
   const retry = useCallback(() => {

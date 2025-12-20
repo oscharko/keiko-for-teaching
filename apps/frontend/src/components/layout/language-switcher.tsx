@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useUserStore } from '@/stores/user';
+import { useLocale } from 'next-intl';
+import { useRouter, usePathname } from 'next/navigation';
 
 const languages = [
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
@@ -16,16 +17,16 @@ const languages = [
 ] as const;
 
 export function LanguageSwitcher() {
-  const { preferences, updatePreference } = useUserStore();
-  const currentLanguage = preferences.language;
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const handleLanguageChange = (languageCode: 'de' | 'en') => {
-    updatePreference('language', languageCode);
-    // In a real implementation, this would also trigger i18n language change
-    // e.g., router.push(router.pathname, router.asPath, { locale: languageCode });
+    // Remove current locale from pathname
+    const pathnameWithoutLocale = pathname.replace(`/${locale}`, '');
+    // Navigate to new locale
+    router.push(`/${languageCode}${pathnameWithoutLocale}`);
   };
-
-  const currentLang = languages.find((lang) => lang.code === currentLanguage);
 
   return (
     <DropdownMenu>
@@ -40,11 +41,11 @@ export function LanguageSwitcher() {
           <DropdownMenuItem
             key={language.code}
             onClick={() => handleLanguageChange(language.code)}
-            className={currentLanguage === language.code ? 'bg-accent' : ''}
+            className={locale === language.code ? 'bg-accent' : ''}
           >
             <span className="mr-2">{language.flag}</span>
             <span>{language.name}</span>
-            {currentLanguage === language.code && (
+            {locale === language.code && (
               <span className="ml-auto text-keiko-primary">✓</span>
             )}
           </DropdownMenuItem>

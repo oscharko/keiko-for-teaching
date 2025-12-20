@@ -1,5 +1,7 @@
 """Chat API endpoints."""
 
+import json
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Request
@@ -9,6 +11,8 @@ from pydantic import BaseModel
 from ..config import settings
 from ..services.chat_service import ChatService
 from ..utils.cache_utils import cache_response, get_cached_response
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Chat"])
 
@@ -99,13 +103,65 @@ async def chat(
     # Streaming response
     if stream:
         async def generate():
-            async for chunk in chat_service.chat_stream(
-                messages=messages,
-                temperature=temperature,
-                use_rag=use_rag,
-                top_k=top_k,
-            ):
-                yield chunk
+            """Generate Server-Sent Events (SSE) for streaming chat response."""
+            try:
+                # Stream the response content
+                accumulated_content = ""
+                async for chunk in chat_service.chat_stream(
+                    messages=messages,
+                    temperature=temperature,
+                    use_rag=use_rag,
+                    top_k=top_k,
+                ):
+                    accumulated_content += chunk
+                    # Yield each chunk as a JSON event
+                    event_data = {
+                        "message": {
+                            "role": "assistant",
+                            "content": chunk,
+                        },
+                        "context": {
+                            "data_points": {
+                                "text": [],
+                                "images": [],
+                                "citations": [],
+                            },
+                            "thoughts": [],
+                            "followup_questions": [],
+                        },
+                    }
+                    yield f"data: {json.dumps(event_data)}\n\n"
+
+                # Send final event with complete response
+                final_event = {
+                    "message": {
+                        "role": "assistant",
+                        "content": accumulated_content,
+                    },
+                    "context": {
+                        "data_points": {
+                            "text": [],
+                            "images": [],
+                            "citations": [],
+                        },
+                        "thoughts": [],
+                        "followup_questions": suggest_followup_questions and (
+                            await chat_service._generate_followup_questions(
+                                messages, accumulated_content
+                            )
+                        ) or [],
+                    },
+                }
+                yield f"data: {json.dumps(final_event)}\n\n"
+                yield "data: [DONE]\n\n"
+
+            except Exception as e:
+                logger.error(f"Streaming error: {e}")
+                error_event = {
+                    "error": str(e),
+                    "done": True,
+                }
+                yield f"data: {json.dumps(error_event)}\n\n"
 
         return StreamingResponse(
             generate(),

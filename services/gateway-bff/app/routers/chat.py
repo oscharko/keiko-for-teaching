@@ -1,12 +1,15 @@
 """Chat API endpoints - proxies requests to chat service."""
 
+import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from ..config import settings
 
+logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Chat"])
 
 
@@ -50,10 +53,22 @@ class ChatResponse(BaseModel):
     session_state: Any | None = None
 
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat(request: Request, chat_request: ChatRequest) -> ChatResponse:
-    """Forward chat request to chat service."""
+@router.post("/chat")
+async def chat(request: Request, chat_request: ChatRequest) -> Any:
+    """Forward chat request to chat service.
+
+    Supports both standard and streaming responses based on the request context.
+    If stream=True in overrides, returns Server-Sent Events stream.
+    Otherwise, returns a standard JSON response.
+    """
     http_client = request.app.state.http_client
+
+    # Check if streaming is requested
+    is_streaming = (
+        chat_request.context
+        and chat_request.context.overrides
+        and chat_request.context.overrides.stream
+    )
 
     try:
         response = await http_client.post(
@@ -61,7 +76,18 @@ async def chat(request: Request, chat_request: ChatRequest) -> ChatResponse:
             json=chat_request.model_dump(exclude_none=True),
         )
         response.raise_for_status()
+
+        # If streaming, return the response as-is (it's already a stream)
+        if is_streaming:
+            return StreamingResponse(
+                response.aiter_bytes(),
+                media_type="text/event-stream",
+            )
+
+        # Otherwise, return standard JSON response
         return ChatResponse(**response.json())
+
     except Exception as e:
+        logger.error(f"Chat service error: {e}")
         raise HTTPException(status_code=502, detail=f"Chat service error: {e}") from e
 
