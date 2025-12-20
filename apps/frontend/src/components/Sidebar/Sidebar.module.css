@@ -1,0 +1,305 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    background-color: #000000;
+    color: #DCFF4A;
+    height: 100%;
+    transition: width 0.3s ease;
+    border-right: 1px solid #333;
+    flex-shrink: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.collapsed {
+    width: 60px;
+}
+
+.expanded {
+    width: 260px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    padding: 1rem;
+    height: 60px;
+}
+
+.logo {
+    width: 24px;
+    height: 24px;
+    transform: scaleX(-1);
+}
+
+.toggleButton {
+    background: none;
+    border: none;
+    color: #DCFF4A;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.toggleButton:hover {
+    background-color: #333333;
+}
+
+.menuItems {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0.5rem;
+    gap: 0.5rem;
+    overflow-y: auto;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    color: #DCFF4A;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: background-color 0.2s;
+}
+
+.menuItem:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.menuItemIcon {
+    font-size: 18px;
+    min-width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menuItemText {
+    margin-left: 12px;
+    font-size: 14px;
+    opacity: 1;
+    transition: opacity 0.2s;
+}
+
+.collapsed .menuItemText {
+    opacity: 0;
+    width: 0;
+    margin-left: 0;
+}
+
+.divider {
+    height: 1px;
+    background-color: #333;
+    margin: 0.5rem 1rem;
+}
+
+.footer {
+    padding: 1rem;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.userProfile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.userProfile:hover {
+    background-color: #333;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    line-height: 32px;
+    border-radius: 50%;
+    background-color: #DCFF4A;
+    /* Brand color */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: bold;
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.userName {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.userStatus {
+    font-size: 12px;
+    color: #888;
+}
+
+.collapsed .userInfo {
+    display: none;
+}
+
+.collapsed .footer {
+    justify-content: center;
+    padding: 0.5rem 0;
+}
+
+.collapsed .userProfile {
+    justify-content: center;
+    padding: 8px 0;
+    gap: 0;
+}
+
+.historySection {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.collapsed .historySection {
+    display: none;
+}
+
+.historyHeader {
+    padding: 0 0.25rem;
+    width: 100%;
+}
+
+.historyHeaderText {
+    color: #888;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0 0.75rem;
+    margin-bottom: 4px;
+}
+
+.historyList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 5px;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-bottom: 10px;
+    padding-right: 4px;
+}
+
+.historyGroupTitle {
+    font-size: 12px;
+    color: #888;
+    margin: 10px 0 5px 10px;
+    font-weight: 600;
+}
+
+.historyItem {
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    width: 100%;
+    color: #ccc;
+    font-size: 14px;
+    line-height: 1.4;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.2s;
+}
+
+.historyItem:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.historyItem:focus-visible {
+    outline: 1px solid #555;
+}
+
+.spinner {
+    margin: 10px auto;
+}
+
+.noHistory {
+    padding: 10px;
+    color: #888;
+    font-size: 12px;
+    text-align: center;
+}
+
+.clearChatButton {
+    padding: 0 0.25rem;
+}
+
+.clearChatButton :global(button) {
+    width: 100%;
+    justify-content: flex-start;
+    border: none;
+    background: transparent;
+    color: #fff;
+}
+
+.clearChatButton :global(button:hover) {
+    background-color: #1f1f1f;
+    color: #fff;
+}
+
+.clearChatButton :global(button:focus-visible) {
+    outline: 1px solid #555;
+}
+
+.settingsButton {
+    padding: 0 0.25rem;
+}
+
+.settingsButton :global(button) {
+    width: 100%;
+    justify-content: flex-start;
+    border: none;
+    background: transparent;
+    color: #fff;
+}
+
+.settingsButton :global(button:hover) {
+    background-color: #1f1f1f;
+    color: #fff;
+}
+
+.settingsButton :global(button:focus-visible) {
+    outline: 1px solid #555;
+}
+
+.collapsed .clearChatButton {
+    display: none;
+}
+
+.collapsed .settingsButton {
+    display: none;
+}
